@@ -43,7 +43,7 @@ public class SetupAccountPage {
         
         //ObservableList<String> roles = FXCollections.observableArrayList("Admin", "Student", "ETC"); Can also use list like this for combobox
         
-        ComboBox<String> roleField = new ComboBox<>(); //ComboBox for fixed choice dropdown, can add desired choices
+        ComboBox<String> roleField = new ComboBox<>(); //(Dalton changes) ComboBox for fixed choice dropdown, can add desired choices
         roleField.getItems().addAll("Admin", "Student", "Instructor", "Staff", "Reviewer"); //User can pick between required roles
         roleField.setValue("Admin"); //set default value to admin
         
@@ -64,7 +64,7 @@ public class SetupAccountPage {
         	String userName = userNameField.getText();
             String password = passwordField.getText();
             String code = inviteCodeField.getText();
-            String role = roleField.getValue();
+            String role = roleField.getValue(); //Dalton changes
             
             
             
@@ -103,7 +103,7 @@ public class SetupAccountPage {
 
         VBox layout = new VBox(10);
         layout.setStyle("-fx-padding: 20; -fx-alignment: center;");
-        layout.getChildren().addAll(userNameField, passwordField,inviteCodeField, roleField, setupButton, errorLabel);
+        layout.getChildren().addAll(userNameField, passwordField,inviteCodeField, roleField, setupButton, errorLabel); //add rolefield -Dalton
 
         primaryStage.setScene(new Scene(layout, 1000, 600));
         primaryStage.setTitle("Account Setup");
