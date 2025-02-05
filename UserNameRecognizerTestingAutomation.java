@@ -6,11 +6,15 @@ public class UserNameRecognizerTestingAutomation {
 	static int numFailed = 0;	// Counter of number of failed tests
 	
 	public static void main(String[] args) {
+<<<<<<< jdm8805-patch-1
+		// TODO Insert test cases
+=======
 		/************** Test cases semi-automation report header **************/
 		System.out.println("______________________________________");
 		System.out.println("\nTesting Automation");
 		
 		// Test cases to ensure invalidity
+>>>>>>> main
 		performTestCase(1, "1username", false);
 			
 		performTestCase(2, ".username", false);
@@ -24,6 +28,19 @@ public class UserNameRecognizerTestingAutomation {
 		performTestCase(6, "user__name", false);
 			
 		performTestCase(7, "user--name", false);
+<<<<<<< jdm8805-patch-1
+			
+		performTestCase(8, "user.name", true);
+			
+		performTestCase(9, "username", true);
+		
+		performTestCase(10, "username12", true);
+		
+		performTestCase(11, "UserName34", true);
+		
+		
+		
+=======
 		
 		performTestCase(8, "usernameUserName1234", false);
 		
@@ -47,15 +64,20 @@ public class UserNameRecognizerTestingAutomation {
 		/************** Test cases semi-automation report footer **************/
 		System.out.println("____________________________________________________________________________");
 		System.out.println();
+>>>>>>> main
 		System.out.println("Number passed: " + numPassed);
 		System.out.println("Number failed: " + numFailed);
 		
 	}
+<<<<<<< jdm8805-patch-1
+	
+=======
 	/* This method sets up the input value for the tests from the parameters,
 	*  invokes the corresponding function from the UserNameRecognizer class,
 	*  displays the pass/fail of the test with the given boolean parameter,
 	*  and increments the total passed/failed
 	*/
+>>>>>>> main
 	private static void performTestCase(int testCase, String inputText, boolean expectedPass) {
 		// Display individual test case headers
 		System.out.println("____________________________________________________________________________\n\nTest case: " + testCase);
