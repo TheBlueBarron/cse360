@@ -30,7 +30,7 @@ public class ListUsersPage {
             String userData = databaseHelper.listUsers(); // get user data from the database
             usersList.setText(userData); // Display the user data in the TextBox
         });
-        
+
         Button showBackButton = new Button("Back"); ;
         showBackButton.setOnAction(a -> {
         	new AdminHomePage(databaseHelper).show(primaryStage);

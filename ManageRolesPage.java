@@ -26,40 +26,68 @@ public class ManageRolesPage {
 
         // ComboBox to select the new role
         ComboBox<String> roleComboBox = new ComboBox<>();
-        roleComboBox.getItems().addAll("admin", "user");
-        roleComboBox.setPromptText("Select new role");
-
+        roleComboBox.getItems().addAll("user", "admin", "student", "instructor", "reviewer", "staff");
+        roleComboBox.setPromptText("Select role");
+        
+        // Jaari edit begins ------------------------------
+        // ComboBox to select action to take with role
+        ComboBox<String> actionComboBox = new ComboBox<>();
+        actionComboBox.getItems().addAll("add", "replace", "remove");
+        actionComboBox.setPromptText("Select action");
+        // end of edit ------------------------------------
+        
         // Button to apply the role change
         Button changeRoleButton = new Button("Change Role");
         changeRoleButton.setOnAction(a -> {
             String username = usernameField.getText();
-            String newRole = roleComboBox.getValue();
-            if (!username.isEmpty() && newRole != null) {
-                boolean result = databaseHelper.manageUserRole(username, newRole);
-                Alert resultAlert = new Alert(Alert.AlertType.INFORMATION);
-                resultAlert.setContentText(result ? "Role updated successfully." : "Failed to update role.");
-                resultAlert.showAndWait();
-            } else {
-                Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Username and role must be entered.");
-                errorAlert.showAndWait();
-            }
+            // Jaari edit begins -----------------------------------------------------
+            String role = roleComboBox.getValue();
+            String action = actionComboBox.getValue();
+	        // Calls the corresponding function based on which action is selected
+            if (action.equals("replace")) {
+            	// This will completely replace the user's role in the table
+            	if (!username.isEmpty() && role != null) {
+	                boolean result = databaseHelper.manageUserRole(username, role);
+	                Alert resultAlert = new Alert(Alert.AlertType.INFORMATION);
+	                resultAlert.setContentText(result ? "Role updated successfully." : "Failed to update role.");
+	                resultAlert.showAndWait();
+	            } else {
+	                Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Username and role must be entered.");
+	                errorAlert.showAndWait();
+	            }
+	        } else if (action.equals("add")){
+	        	// This will add a role to a user, delimited by a comma
+	        	if (!username.isEmpty() && role != null) {
+	                boolean result = databaseHelper.addUserRole(username, role);
+	                Alert resultAlert = new Alert(Alert.AlertType.INFORMATION);
+	                resultAlert.setContentText(result ? "Role added successfully." : "Failed to add role.");
+	                resultAlert.showAndWait();
+	        	} else {
+	        		Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Username and role must be entered.");
+	                errorAlert.showAndWait();
+	        	}
+	        } else {
+	        	if (!username.isEmpty() && role != null) {
+	        		boolean result = databaseHelper.removeUserRole(username, role);
+	        		Alert resultAlert = new Alert(Alert.AlertType.INFORMATION);
+	                resultAlert.setContentText(result ? "Role removed successfully." : "Failed to remove role.");
+	                resultAlert.showAndWait();
+	        	} else {
+	        		Alert errorAlert = new Alert(Alert.AlertType.ERROR, "Username and role must be entered.");
+	                errorAlert.showAndWait();
+	        	}
+	        }
+	        // end of edit ------------------------------------------------------------	
         });
-        
-        Button addNewRoleButton = new Button("Add new role");
-        
-        addNewRoleButton.setOnAction(a -> {
-        	String username = usernameField.getText();
-        	
-        });
-        
+
         Button showBackButton = new Button("Back"); ;
         showBackButton.setOnAction(a -> {
         	new AdminHomePage(databaseHelper).show(primaryStage);
         });
 
-        layout.getChildren().addAll(titleLabel, usernameField, roleComboBox, changeRoleButton, showBackButton);
+        layout.getChildren().addAll(titleLabel, usernameField, roleComboBox, actionComboBox, changeRoleButton, showBackButton);
         Scene scene = new Scene(layout, 800, 400);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Role Managment Page");
+        primaryStage.setTitle("Role Management Page");
     }
 }

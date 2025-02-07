@@ -59,9 +59,18 @@ public class UserLoginPage {
             	String role = databaseHelper.getUserRole(userName);
             	
             	if(role!=null) {
+            		
             		user.setRole(role);
             		if(databaseHelper.login(user)) {
-            			welcomeLoginPage.show(primaryStage,user);
+            			// Jaari edit begins -------------------------------------------
+                		// Checks if user has multiple roles and redirects appropriately
+                		if(user.getRole().contains(",")) {
+                			MultiRoleUserPage multiRoleUserPage = new MultiRoleUserPage(databaseHelper);
+                			multiRoleUserPage.show(primaryStage, user);
+                		} else {
+                			welcomeLoginPage.show(primaryStage,user);
+                		}
+                		// end of edit -------------------------------------------------
             		}
             		else {
             			// Display an error if the login fails
@@ -79,9 +88,14 @@ public class UserLoginPage {
             } 
         });
 
+        Button showBackButton = new Button("Back"); ;
+        showBackButton.setOnAction(a -> {
+        	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
+        });
+        
         VBox layout = new VBox(10);
         layout.setStyle("-fx-padding: 20; -fx-alignment: center;");
-        layout.getChildren().addAll(userNameField, passwordField, loginButton, errorLabel);
+        layout.getChildren().addAll(userNameField, passwordField, loginButton, errorLabel, showBackButton);
 
         primaryStage.setScene(new Scene(layout, 800, 400));
         primaryStage.setTitle("User Login");

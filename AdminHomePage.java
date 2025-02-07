@@ -32,7 +32,7 @@ public class AdminHomePage {
 	    Label adminLabel = new Label("Hello, Admin!");
 	    adminLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 	    
-	 // Button to invite users // edit begin
+	    // Button to invite users // edit begin
         Button inviteButton = new Button("Invite User");
         inviteButton.setOnAction(a -> {
             new InvitationPage().show(databaseHelper, primaryStage);
@@ -59,9 +59,20 @@ public class AdminHomePage {
         	new ManageRolesPage().show(databaseHelper, primaryStage);
         });
         
+        // Log out button set up & display
+        Button logoutButton = new Button("LOGOUT");
+        
+        Label spacerLabel = new Label("\n\n\n");
+        spacerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        
+        logoutButton.setOnAction(event -> {
+        	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
+        });
+        
         // edit ends
 
-	    layout.getChildren().addAll(adminLabel, inviteButton, oneTimePasswordButton, deleteUserButton, listUsersButton, manageRolesButton);
+	    layout.getChildren().addAll(adminLabel, inviteButton, oneTimePasswordButton, 
+	    		deleteUserButton, listUsersButton, manageRolesButton, spacerLabel, logoutButton);
 	    Scene adminScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage

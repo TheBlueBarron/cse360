@@ -34,7 +34,7 @@ public class DatabaseHelper {
 			connection = DriverManager.getConnection(DB_URL, USER, PASS);
 			statement = connection.createStatement(); 
 			// You can use this command to clear the database and restart from fresh.
-			//statement.execute("DROP ALL OBJECTS");
+			// statement.execute("DROP ALL OBJECTS");
 
 			createTables();  // Create the necessary tables if they don't exist
 		} catch (ClassNotFoundException e) {
@@ -47,7 +47,7 @@ public class DatabaseHelper {
 				+ "id INT AUTO_INCREMENT PRIMARY KEY, "
 				+ "userName VARCHAR(255) UNIQUE, "
 				+ "password VARCHAR(255), "
-				+ "role VARCHAR(20))";
+				+ "role VARCHAR(50))"; // Edited this from 20
 		statement.execute(userTable);
 		
 		// Create the invitation codes table
@@ -126,6 +126,23 @@ public class DatabaseHelper {
 	    return null; // If no user exists or an error occurs
 	}
 	
+	// Jaari edit -------------------------------------------------------------
+	// Retrieves the password of a user from the database using their UserName.
+	public String getUserPassword(String userName) {
+		String query = "SELECT password FROM cse360users WHERE userName = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setString(1, userName);
+			ResultSet rs = pstmt.executeQuery();
+			
+			if (rs.next()) {
+				return rs.getString("password");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	} // end of edit ----------------------------------------------------------
+	
 	// Generates a new invitation code and inserts it into the database.
 	public String generateInvitationCode() {
 	    String code = UUID.randomUUID().toString().substring(0, 4); // Generate a random 4-character code
@@ -181,12 +198,17 @@ public class DatabaseHelper {
             return false;
         }
     }
-
+    
     // Delete a user from the database
     public boolean deleteUser(String userName) {
         String deleteUser = "DELETE FROM cse360users WHERE userName = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(deleteUser)) {
-            pstmt.setString(1, userName);
+            
+        	if (getUserRole(userName).contains("admin")) {
+            	return false;
+            }
+        	
+        	pstmt.setString(1, userName);
             return pstmt.executeUpdate() > 0; // Returns true if user was successfully deleted
         } catch (SQLException e) {
             e.printStackTrace();
@@ -223,7 +245,84 @@ public class DatabaseHelper {
             return false;
         }
     } // Radwan edit ends!! ------------------------------------------------------------------
-
+    
+    // Jaari edit ----------------------------------------------------------------------------
+    // Adds a role to a user to allow multiple options.
+    public boolean addUserRole(String userName, String addedRole) {
+    	String addRole = "UPDATE cse360users SET role = ? WHERE userName = ?";
+    	try (PreparedStatement pstmt = connection.prepareStatement(addRole)) {
+    		
+    		// Check that user does not already have this role
+    		if (getUserRole(userName).contains(addedRole)) {
+    			return false;
+    		}
+    		
+    		// If not, add desired role to role attribute
+    		pstmt.setString(1, getUserRole(userName) + "," + addedRole);
+    		pstmt.setString(2, userName);
+    		
+    		return pstmt.executeUpdate() > 0; // Returns true if the role was successfully added 
+    	} catch (SQLException e) {
+    		e.printStackTrace();
+            return false;
+    	}
+    } 
+    public boolean removeUserRole(String userName, String removedRole) {
+    	String removeRole = "UPDATE cse360users SET role = ? WHERE userName = ?";
+    	try (PreparedStatement pstmt = connection.prepareStatement(removeRole)) {
+    		
+    		// Checks that the user has the role to remove
+    		if (!getUserRole(userName).contains(removedRole)) {
+    			return false;
+    		}
+    		
+    		// Checks if the role being removed is their admin role;
+    		// if it is, cancel the operation
+    		if (removedRole.equals("admin")) {
+    			return false;
+    		}
+    		
+    		// If the user only has the one role, restore to default
+    		if (!getUserRole(userName).contains(",")) {
+    			pstmt.setString(1, "user");
+    			pstmt.setString(2, userName);
+    			return pstmt.executeUpdate() > 0; // Returns true if the role was successfully added 
+    		}
+    		
+    		/* Out-of-place algorithm to remove the desired role from the user's
+    		 * attributes; shouldn't pose too much of a runtime issue as max
+    		 * length of user's role can be 5
+    		 */
+    		String[] roles = getUserRole(userName).split(",");
+    		String[] newRoles = new String[roles.length - 1];
+    		int newRolesPointer = 0;
+    		for (int i = 0; i < roles.length; i++) {
+    			if (!roles[i].equals(removedRole)) {
+    				newRoles[newRolesPointer] = roles[i];
+    				newRolesPointer++;
+    			}
+    		}
+    		
+    		if (newRolesPointer > 1) {
+    			// If user has multiple roles still, join them into new role value
+    			pstmt.setString(1, String.join(",", newRoles));
+    			pstmt.setString(2, userName);
+    		} else {
+    			// If user only has one role after for loop, simply set that as their role
+    			pstmt.setString(1, newRoles[0]);
+    			pstmt.setString(2, userName);
+    		}
+    		
+    		return pstmt.executeUpdate() > 0; // Returns true if the role was successfully added
+    		
+    	} catch (SQLException e) {
+    		e.printStackTrace();
+    		return false;
+    	}
+    }
+    
+    // end of Jaari edit --------------------------------------------------------------------
+    
 	// Closes the database connection and statement.
 	public void closeConnection() {
 		try{ 
