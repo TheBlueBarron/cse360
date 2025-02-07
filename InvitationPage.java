@@ -41,9 +41,14 @@ public class InvitationPage {
             String invitationCode = databaseHelper.generateInvitationCode();
             inviteCodeLabel.setText(invitationCode);
         });
+        
+        Button showBackButton = new Button("Back"); ;
+        showBackButton.setOnAction(a -> {
+        	new AdminHomePage(databaseHelper).show(primaryStage);
+        });
 	    
 
-        layout.getChildren().addAll(userLabel, showCodeButton, inviteCodeLabel);
+        layout.getChildren().addAll(userLabel, showCodeButton, inviteCodeLabel, showBackButton);
 	    Scene inviteScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage

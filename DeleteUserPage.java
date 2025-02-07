@@ -48,8 +48,13 @@ public class DeleteUserPage {
                 errorAlert.showAndWait();
             }
         });
+        
+        Button showBackButton = new Button("Back"); ;
+        showBackButton.setOnAction(a -> {
+        	new AdminHomePage(databaseHelper).show(primaryStage);
+        });
 
-        layout.getChildren().addAll(deleteUser, usernameField, deleteUserButton);
+        layout.getChildren().addAll(deleteUser, usernameField, deleteUserButton, showBackButton);
         Scene scene = new Scene(layout, 800, 400);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Delete User Page");

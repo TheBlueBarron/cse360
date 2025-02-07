@@ -30,8 +30,13 @@ public class ListUsersPage {
             String userData = databaseHelper.listUsers(); // get user data from the database
             usersList.setText(userData); // Display the user data in the TextBox
         });
+        
+        Button showBackButton = new Button("Back"); ;
+        showBackButton.setOnAction(a -> {
+        	new AdminHomePage(databaseHelper).show(primaryStage);
+        });
 
-        layout.getChildren().addAll(listOfUsers, usersList, displayButton);
+        layout.getChildren().addAll(listOfUsers, usersList, displayButton, showBackButton);
         Scene scene = new Scene(layout, 800, 400);
         primaryStage.setScene(scene);
         primaryStage.setTitle("List Users Page");

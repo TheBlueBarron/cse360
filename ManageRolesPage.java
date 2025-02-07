@@ -44,8 +44,20 @@ public class ManageRolesPage {
                 errorAlert.showAndWait();
             }
         });
+        
+        Button addNewRoleButton = new Button("Add new role");
+        
+        addNewRoleButton.setOnAction(a -> {
+        	String username = usernameField.getText();
+        	
+        });
+        
+        Button showBackButton = new Button("Back"); ;
+        showBackButton.setOnAction(a -> {
+        	new AdminHomePage(databaseHelper).show(primaryStage);
+        });
 
-        layout.getChildren().addAll(titleLabel, usernameField, roleComboBox, changeRoleButton);
+        layout.getChildren().addAll(titleLabel, usernameField, roleComboBox, changeRoleButton, showBackButton);
         Scene scene = new Scene(layout, 800, 400);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Role Managment Page");
