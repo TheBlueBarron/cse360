@@ -12,7 +12,7 @@ import javafx.stage.Stage;
 
 public class ReviewerHomePage {
 	
-	private final DatabaseHelper databaseHelper;
+	private final DatabaseHelper databaseHelper; //Added databasehelper for use in the future
 	
     public ReviewerHomePage(DatabaseHelper databaseHelper) {
         this.databaseHelper = databaseHelper;  
