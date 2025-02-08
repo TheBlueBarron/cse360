@@ -131,7 +131,7 @@ public class UserNameRecognizer {
 			case 1: 
 				// State 1 has two valid transitions, 
 				//	1: a A-Z, a-z, 0-9 that transitions back to state 1
-				//  2: a period that transitions to state 2 
+				//  2: a period, underscore, or hyphen that transitions to state 2 
 
 				
 				// A-Z, a-z, 0-9 -> State 1
@@ -235,13 +235,13 @@ public class UserNameRecognizer {
 			else if (userNameSize > 16) {
 				// UserName is too long
 				userNameRecognizerErrorMessage += 
-					"A UserName must have no more than 16 character.\n";
+					"A UserName must have no more than 16 characters.\n";
 				return userNameRecognizerErrorMessage;
 			}
 			else if (currentCharNdx < input.length()) {
 				// There are characters remaining in the input, so the input is not valid
 				userNameRecognizerErrorMessage += 
-					"A UserName character may only contain the characters A-Z, a-z, 0-9.\n";
+					"A UserName character may only contain the characters A-Z, a-z, 0-9, a period, underscore, or minus sign.\n";
 				return userNameRecognizerErrorMessage;
 			}
 			else {
