@@ -9,7 +9,7 @@ This phase of the CSE360 project implements functionality from the "New Users" a
    - H2 Library
 2. Download TeamProjPhase1.zip to your machine.
 3. Unzip and import into your desired workspace; this project was built in Eclipse, therefore the following instructions are for Eclipse.
-4. Ensure the Modulepath contains both JavaFX and the jdk-23 system library, and ensure the classpath contains H2.
+   - Ensure the Modulepath contains both JavaFX and the jdk-23 system library, and ensure the classpath contains H2.
 
 ## Usage
 Begin the program by running StartCSE360.java.
