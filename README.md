@@ -25,6 +25,8 @@ Radwan Alandonosi, Samuel Coles, Luke Humbert, Jaari Moreno, Xander Petty, Dalto
 
 ## Other Information
 Here are the links to our stand up meetings:
+
 https://drive.google.com/file/d/1KSgbRpVD_N69JoKFm1iIvCMcl9KLxbPY/view?usp=sharing 
+
 https://drive.google.com/file/d/17p3UfVJG6kR8sLZA6-tsUsi2Uo4InbVM/view?usp=sharing 
    
