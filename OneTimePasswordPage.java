@@ -43,8 +43,13 @@ public class OneTimePasswordPage {
             }
             alert.showAndWait();
         });
+        
+        Button showBackButton = new Button("Back"); ;
+        showBackButton.setOnAction(a -> {
+        	new AdminHomePage(databaseHelper).show(primaryStage);
+        });
 
-        layout.getChildren().addAll(setPassword, usernameField, passwordField, setPasswordButton);
+        layout.getChildren().addAll(setPassword, usernameField, passwordField, setPasswordButton, showBackButton);
         Scene scene = new Scene(layout, 800, 400);
 
         primaryStage.setScene(scene);

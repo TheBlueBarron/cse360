@@ -3,6 +3,7 @@ package application;
 import databasePart1.DatabaseHelper;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -35,7 +36,19 @@ public class StudentHomePage {
 	    
 	    userLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-	    layout.getChildren().add(userLabel);
+	    Button logoutButton = new Button("LOGOUT");
+        
+	       
+        Label spacerLabel = new Label("\n\n\n");
+        spacerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        
+        
+        
+        logoutButton.setOnAction(event -> {
+        	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
+        });
+
+	    layout.getChildren().addAll(userLabel, spacerLabel, logoutButton);
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage

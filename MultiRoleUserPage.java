@@ -59,7 +59,7 @@ public class MultiRoleUserPage {
     	    		new AdminHomePage(databaseHelper).show(primaryStage);
     	    	}
     	    	else if(role.equals("user")) {
-    	    		new UserHomePage().show(primaryStage);
+    	    		new UserHomePage(databaseHelper).show(primaryStage);
     	    	}
     	    	else if(role.equals("staff")) {
     	    		new StaffHomePage(databaseHelper).show(primaryStage);
@@ -70,8 +70,12 @@ public class MultiRoleUserPage {
     	    	else if(role.equals("reviewer")) {
     	    		new ReviewerHomePage(databaseHelper).show(primaryStage);
     	    	}
+    	    	else if(role.equals("student")) {
+    	    		new StudentHomePage(databaseHelper).show(primaryStage);
+    	    	}
     	    	else {
-    	    		new UserHomePage().show(primaryStage);
+    	    		// By default, display the user home page
+    	    		new UserHomePage(databaseHelper).show(primaryStage);
     	    	}
             } else {
                 Alert errorAlert = new Alert(Alert.AlertType.ERROR, "No selection made!");
@@ -79,8 +83,6 @@ public class MultiRoleUserPage {
             }
         });
         
-        
-
         layout.getChildren().addAll(welcomeLabel, titleLabel, roleComboBox, selectButton);
         Scene scene = new Scene(layout, 800, 400);
         primaryStage.setScene(scene);

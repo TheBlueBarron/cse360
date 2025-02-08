@@ -1,6 +1,5 @@
 package application;
 
-//import javafx.collections.FXCollections;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
@@ -28,7 +27,6 @@ public class SetupAccountPage {
      */
     public void show(Stage primaryStage) {
     	// Input fields for userName, password, and invitation code
-
         TextField userNameField = new TextField();
         userNameField.setPromptText("Enter userName");
         userNameField.setMaxWidth(250);
@@ -41,71 +39,80 @@ public class SetupAccountPage {
         inviteCodeField.setPromptText("Enter InvitationCode");
         inviteCodeField.setMaxWidth(250);
         
-        //ObservableList<String> roles = FXCollections.observableArrayList("Admin", "Student", "ETC"); Can also use list like this for combobox
-        
+        // Allow user to pick their role
         ComboBox<String> roleField = new ComboBox<>(); //(Dalton changes) ComboBox for fixed choice dropdown, can add desired choices
-        roleField.getItems().addAll("Admin", "Student", "Instructor", "Staff", "Reviewer"); //User can pick between required roles
-        roleField.setValue("Admin"); //set default value to admin
-        
-    
+        roleField.getItems().addAll("user", "student", "instructor", "staff", "reviewer"); // User can pick between required roles
+        roleField.setPromptText("Select role");
         
         // Label to display error messages for invalid input or registration issues
         Label errorLabel = new Label();
         errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 12px;");
-
-
         
 
         Button setupButton = new Button("Setup");
         
         setupButton.setOnAction(a -> {
         	// Retrieve user input
-            
-        	String userName = userNameField.getText();
+            String userName = userNameField.getText();
             String password = passwordField.getText();
+            String role = roleField.getValue();
             String code = inviteCodeField.getText();
-            String role = roleField.getValue(); //Dalton changes
             
-            
+            String usernameErrMessage = UserNameRecognizer.checkForValidUserName(userName);
+            String passwordErrMessage = PasswordEvaluator.evaluatePassword(password);
             
             try {
-
-            	// Check if the user already exists
-            	if(!databaseHelper.doesUserExist(userName)) {
-            		
-            		// Validate the invitation code
-            		if(databaseHelper.validateInvitationCode(code) && PasswordEvaluator.evaluatePassword(password) == "" && UserNameRecognizer.checkForValidUserName(userName) == "") {
-            			
-            			// Create a new user and register them in the database
-		            	User user=new User(userName, password, role, "user");
-		                databaseHelper.register(user);
-		                
-		             // Navigate to the Welcome Login Page
-		                new WelcomeLoginPage(databaseHelper).show(primaryStage,user);
-            		}
-            		
-            		else {
-            			errorLabel.setText(PasswordEvaluator.evaluatePassword(password));
-
-            		}
-            	}
-            	else {
-            		errorLabel.setText("This useruserName is taken!!.. Please use another to setup an account");
-            	}
-            	
-            	
+             // Validate username
+	         if (usernameErrMessage.length() == 0) {   
+	        	// Check if the user already exists
+	        	 if(!databaseHelper.doesUserExist(userName)) {
+	            		
+	            		// Validate the password
+	            		if(passwordErrMessage.length() == 0) {
+	            			// Validate the invitation code
+	            			if (databaseHelper.validateInvitationCode(code)) {
+	            			
+	            			// Create a new user and register them in the database
+			            	User user=new User(userName, password, role);
+			                databaseHelper.register(user);
+			                
+			                // Navigate to the Welcome Login Page
+			                new WelcomeLoginPage(databaseHelper).show(primaryStage,user);
+	            			}
+	            			else {
+	            				errorLabel.setText("Please enter a valid invitation code");
+	            			}
+	            		}
+	            		else {
+	            			errorLabel.setText("Password - " + passwordErrMessage);
+	            		}
+	            	}
+	            	else {
+	            		errorLabel.setText("This useruserName is taken!!.. Please use another to setup an account");
+	            	}
+	         } 
+	         else {
+	        	 errorLabel.setText("Username - " + usernameErrMessage);
+	         }
             } catch (SQLException e) {
                 System.err.println("Database error: " + e.getMessage());
                 e.printStackTrace();
             }
         });
-        
 
         VBox layout = new VBox(10);
         layout.setStyle("-fx-padding: 20; -fx-alignment: center;");
-        layout.getChildren().addAll(userNameField, passwordField,inviteCodeField, roleField, setupButton, errorLabel); //add rolefield -Dalton
+        
+        
+        Button showBackButton = new Button("Back"); ;
+        showBackButton.setOnAction(a -> {
+        	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
+        });
+        
+        layout.getChildren().addAll(userNameField, passwordField, inviteCodeField, 
+        					  roleField, setupButton, errorLabel, showBackButton);
 
-        primaryStage.setScene(new Scene(layout, 1000, 600));
+        primaryStage.setScene(new Scene(layout, 800, 400));
         primaryStage.setTitle("Account Setup");
         primaryStage.show();
     }
