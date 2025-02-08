@@ -24,7 +24,7 @@ Contributions are limited to the Wednesday 44 group as listed below. Other pull 
 Radwan Alandonosi, Samuel Coles, Luke Humbert, Jaari Moreno, Xander Petty, Dalton Yu
 
 ## Other Information
-Here are the links to our stand up meetings:
+Here are the links to our stand up meetings & program screencasts:
 
 https://drive.google.com/file/d/1KSgbRpVD_N69JoKFm1iIvCMcl9KLxbPY/view?usp=sharing 
 
