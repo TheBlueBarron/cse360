@@ -29,4 +29,8 @@ Here are the links to our stand up meetings:
 https://drive.google.com/file/d/1KSgbRpVD_N69JoKFm1iIvCMcl9KLxbPY/view?usp=sharing 
 
 https://drive.google.com/file/d/17p3UfVJG6kR8sLZA6-tsUsi2Uo4InbVM/view?usp=sharing 
+
+https://drive.google.com/file/d/1-GtFJ4TZ-LB0AxBTr2Vlw1XVsueWF-dP/view?usp=sharing
+
+https://drive.google.com/file/d/1UVokcxIGdNueIqP9QJ0n-yR8YpHG8JGV/view?usp=sharing
    
