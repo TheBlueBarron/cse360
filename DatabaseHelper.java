@@ -33,7 +33,7 @@ public class DatabaseHelper {
 			connection = DriverManager.getConnection(DB_URL, USER, PASS);
 			statement = connection.createStatement(); 
 			// You can use this command to clear the database and restart from fresh.
-			//statement.execute("DROP ALL OBJECTS");
+			// statement.execute("DROP ALL OBJECTS");
 
 			createTables();  // Create the necessary tables if they don't exist
 		} catch (ClassNotFoundException e) {
@@ -266,12 +266,14 @@ public class DatabaseHelper {
 	}
 
 	// Search: Find questions containing a keyword (case-insensitive)
-	// This method looks for questions whose text includes the given keyword.
+	// This method looks for questions whose text OR author field includes the given keyword.
+	// **** EDIT: updated to search author field as well
 	public List<Question> searchQuestions(String keyword) throws SQLException {
 	    List<Question> list = new ArrayList<>();
-	    String query = "SELECT * FROM Questions WHERE LOWER(text) LIKE ?";
+	    String query = "SELECT * FROM Questions WHERE LOWER(text) LIKE ? OR LOWER(author) LIKE ?";
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
 	        pstmt.setString(1, "%" + keyword.toLowerCase() + "%");  // prepare keyword for search
+	        pstmt.setString(2, "%" + keyword.toLowerCase() + "%");
 	        ResultSet rs = pstmt.executeQuery();            // execute the search query
 	        while (rs.next()) {
 	            list.add(new Question(
@@ -384,8 +386,31 @@ public class DatabaseHelper {
 	        return pstmt.executeUpdate() > 0;             // return true if deletion succeeded
 	    }
 	}
-
-
+	
+	// Search: Find answers containing a keyword (case-insensitive) **** EDIT
+	// This method looks for answers whose field includes the given keyword.
+	public List<Answer> searchAnswers(String keyword, int id) {
+		List<Answer> list = new ArrayList<>();
+		String query = "SELECT * FROM Answers WHERE question_id = ? AND (LOWER(text) LIKE ? OR LOWER(author) LIKE ?)";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setInt(1, id);
+			pstmt.setString(2, "%" + keyword.toLowerCase() + "%");
+			pstmt.setString(3, "%" + keyword.toLowerCase() + "%");
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				list.add(new Answer(
+		                rs.getInt("id"),
+		                rs.getInt("question_id"),
+		                rs.getString("text"),
+		                rs.getString("author")
+		            ));
+			}
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	// Closes the database connection and statement.
 	public void closeConnection() {

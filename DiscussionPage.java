@@ -32,6 +32,9 @@ public class DiscussionPage {
     // Observable list for answers and its ListView for UI display
     private ObservableList<Answer> answersList;
     private ListView<Answer> answersListView;
+    // Observable lists for search results **** EDIT
+    private ObservableList<Question> questionsResults;
+    private ObservableList<Answer> answersResults;
 
     // Constructor that takes the DatabaseHelper as a parameter
     public DiscussionPage(DatabaseHelper dbHelper) {
@@ -85,6 +88,10 @@ public class DiscussionPage {
         HBox questionOperationsBox = new HBox(10, refreshQuestionsButton, editQuestionButton, deleteQuestionButton);
         questionOperationsBox.setPadding(new Insets(5));
         
+        // ---------------- Search Operation Fields & Buttons ---------------- **** EDIT
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search...");
+        
         // ---------------- Answers Section ----------------
         // Label and ListView for showing answers.
         Label answersLabel = new Label("Answers:");
@@ -125,7 +132,7 @@ public class DiscussionPage {
         // Add all sections to the main layout in order.
         mainLayout.getChildren().addAll(
             newQuestionLabel, newQuestionBox, 
-            questionsLabel, questionsListView, questionOperationsBox, 
+            questionsLabel, questionsListView, questionOperationsBox, searchField, 
             answersLabel, answersListView, answerOperationsBox, 
             newAnswerLabel, newAnswerBox
         );
@@ -150,6 +157,41 @@ public class DiscussionPage {
         });
         
         // ---------------- Button Handlers ----------------
+        
+        // Handle search of questions. **** EDIT
+        searchField.setOnAction(e -> {
+        	String sText = searchField.getText();
+        	if (sText.isEmpty()) {
+        		showAlert("Notice", "No text entered!");
+        		return;
+        	}
+        	try {
+        		Question selectedQuestion = questionsListView.getSelectionModel().getSelectedItem();
+        		if (selectedQuestion == null) {
+        			// Gather the results of keyword from Questions database
+            		List<Question> qResults = dbHelper.searchQuestions(sText);
+            		if (qResults.isEmpty()) {
+            			showAlert("Notice", "No results found!");
+            			return;
+            		}
+            		questionsResults = FXCollections.observableArrayList(qResults);
+                    questionsListView.setItems(questionsResults);
+        		} else {
+        			// Gather the results of keyword from Answers database based on question selected
+        			List<Answer> aResults = dbHelper.searchAnswers(sText, selectedQuestion.getId());
+        			if (aResults.isEmpty()) {
+        				showAlert("Notice", "No results found!");
+            			return;
+        			}
+        			answersResults = FXCollections.observableArrayList(aResults);
+        			answersListView.setItems(answersResults);
+        		}
+        		return;
+        	} catch (SQLException ex) {
+        		ex.printStackTrace();
+        		showAlert("Error", "Failed to search.");
+        	}
+        });
         
         // Handle posting a new question.
         postQuestionButton.setOnAction(e -> {
@@ -212,11 +254,16 @@ public class DiscussionPage {
         });
         
         // Refresh buttons for questions and answers.
-        refreshQuestionsButton.setOnAction(e -> loadQuestions());
+        // **** EDIT: Added a clear to the search field upon pressing
+        refreshQuestionsButton.setOnAction(e -> {
+        	loadQuestions();
+        	searchField.clear();
+        });
         refreshAnswersButton.setOnAction(e -> {
             Question selectedQuestion = questionsListView.getSelectionModel().getSelectedItem();
             if (selectedQuestion != null) {
                 loadAnswers(selectedQuestion.getId());
+                searchField.clear();
             }
         });
         
@@ -350,7 +397,6 @@ public class DiscussionPage {
             }
         });
     }
-
     // ---------------- Helper Methods ----------------
 
     // Loads all questions from the database into the ListView.
