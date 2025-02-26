@@ -1,13 +1,12 @@
 package databasePart1;
-import java.sql.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+
+import application.User; 
+import application.Question; 
+import application.Answer; 
+import java.sql.*; 
+import java.util.ArrayList; 
+import java.util.List; 
 import java.util.UUID;
-
-import application.User;
-
 
 /**
  * The DatabaseHelper class is responsible for managing the connection to the database,
@@ -47,7 +46,7 @@ public class DatabaseHelper {
 				+ "id INT AUTO_INCREMENT PRIMARY KEY, "
 				+ "userName VARCHAR(255) UNIQUE, "
 				+ "password VARCHAR(255), "
-				+ "role VARCHAR(50))"; // Edited this from 20
+				+ "role VARCHAR(20))";
 		statement.execute(userTable);
 		
 		// Create the invitation codes table
@@ -55,6 +54,25 @@ public class DatabaseHelper {
 	            + "code VARCHAR(10) PRIMARY KEY, "
 	            + "isUsed BOOLEAN DEFAULT FALSE)";
 	    statement.execute(invitationCodesTable);
+	    
+	    // New for HW2 (Questions and Answers table)
+	    //Questions table
+	    String questionsTable = "CREATE TABLE IF NOT EXISTS Questions ("
+	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
+	            + "text VARCHAR(1024), "
+	            + "author VARCHAR(255), "
+	            + "isResolved BOOLEAN)"; 
+	    statement.execute(questionsTable);
+	    
+	    //Answers table
+	    String answersTable = "CREATE TABLE IF NOT EXISTS Answers ("
+	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
+	            + "question_id INT, "
+	            + "text VARCHAR(1024), "
+	            + "author VARCHAR(255), "
+	            + "resolved BOOLEAN, " 
+	            + "FOREIGN KEY (question_id) REFERENCES Questions(id) ON DELETE CASCADE)";
+	    statement.execute(answersTable);
 	}
 
 
@@ -126,23 +144,6 @@ public class DatabaseHelper {
 	    return null; // If no user exists or an error occurs
 	}
 	
-	// Jaari edit -------------------------------------------------------------
-	// Retrieves the password of a user from the database using their UserName.
-	public String getUserPassword(String userName) {
-		String query = "SELECT password FROM cse360users WHERE userName = ?";
-		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-			pstmt.setString(1, userName);
-			ResultSet rs = pstmt.executeQuery();
-			
-			if (rs.next()) {
-				return rs.getString("password");
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return null;
-	} // end of edit ----------------------------------------------------------
-	
 	// Generates a new invitation code and inserts it into the database.
 	public String generateInvitationCode() {
 	    String code = UUID.randomUUID().toString().substring(0, 4); // Generate a random 4-character code
@@ -186,6 +187,265 @@ public class DatabaseHelper {
 	    }
 	}
 	
+	// ---------------- Question Operations ----------------
+
+	// Create: Add a new question
+	// This method inserts a new question into the database.
+	// It uses a prepared statement to set the question's text and author,
+	// then it retrieves the auto-generated ID and updates the question object.
+	public void addQuestion(Question question) throws SQLException {
+	    String insertQuestion = "INSERT INTO Questions (text, author, isResolved) VALUES (?, ?, ?)";
+	    try (PreparedStatement pstmt = connection.prepareStatement(insertQuestion, Statement.RETURN_GENERATED_KEYS)) {
+	        pstmt.setString(1, question.getText());       // set the question text
+	        pstmt.setString(2, question.getAuthor());       // set the question author
+	        pstmt.setBoolean(3, question.getIsResolved());
+	        pstmt.executeUpdate();                          // run the insert
+	        ResultSet rs = pstmt.getGeneratedKeys();        // get the new ID from the database
+	        if (rs.next()) {
+	            question.setId(rs.getInt(1));               // update our question object with its ID
+	        }
+	    }
+	}
+
+	// Read: Get a question by its ID
+	// This method fetches a question from the database based on its ID.
+	public Question getQuestionById(int id) throws SQLException {
+	    String query = "SELECT * FROM Questions WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setInt(1, id);                            // set the ID to search for
+	        ResultSet rs = pstmt.executeQuery();            // execute the query
+	        if (rs.next()) {
+	            return new Question(
+	                rs.getInt("id"),
+	                rs.getString("text"),
+	                rs.getString("author"),
+	                rs.getBoolean("isResolved") 			
+	            );
+	        }
+	    }
+	    return null;  // return null if no question is found
+	}
+
+	// Read: Get all questions
+	// This method retrieves all questions from the database and returns them as a list.
+	public List<Question> getAllQuestions() throws SQLException {
+	    List<Question> list = new ArrayList<>();
+	    String query = "SELECT * FROM Questions";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        ResultSet rs = pstmt.executeQuery();            // execute the query to get all questions
+	        while (rs.next()) {
+	            list.add(new Question(
+	                rs.getInt("id"),
+	                rs.getString("text"),
+	                rs.getString("author"),
+	                rs.getBoolean("isResolved") 
+	                
+	            ));
+	        }
+	    }
+	    return list;  // return the list of questions
+	}
+
+	// Update: Update a question's text
+	// This method updates the text of a question identified by its ID,
+	// but only if the new text is valid.
+	public boolean updateQuestionText(int id, String newText) throws SQLException {
+	    if (!Question.isValidQuestionText(newText)) {
+	        return false;  // new text is invalid, so we don't update
+	    }
+	    String updateQuery = "UPDATE Questions SET text = ? WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(updateQuery)) {
+	        pstmt.setString(1, newText);                   // set the new text
+	        pstmt.setInt(2, id);                           // specify which question to update
+	        return pstmt.executeUpdate() > 0;              // return true if at least one row was updated
+	    }
+	}
+	
+	//This method updates the questions resolved flag
+	public void updateIsResolvedQuestion(int id, boolean isResolved) throws SQLException {
+		String updateQuery = "UPDATE Questions SET isResolved = ? WHERE id = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(updateQuery)) {
+			pstmt.setBoolean(1, isResolved);			   // update resolved flag
+	        pstmt.setInt(2, id);                           // specify which question to update
+	        pstmt.executeUpdate();            
+		}
+	}
+
+	// Delete: Remove a question
+	// This method deletes a question from the database using its ID.
+	public boolean deleteQuestion(int id) throws SQLException {
+	    String deleteQuery = "DELETE FROM Questions WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(deleteQuery)) {
+	        pstmt.setInt(1, id);                           // set the ID of the question to delete
+	        return pstmt.executeUpdate() > 0;              // return true if deletion was successful
+	    }
+	}
+
+	// Search: Find questions containing a keyword (case-insensitive)
+	// This method looks for questions whose text OR author field includes the given keyword.
+	// **** EDIT: updated to search author field as well
+	public List<Question> searchQuestions(String keyword) throws SQLException {
+	    List<Question> list = new ArrayList<>();
+	    String query = "SELECT * FROM Questions WHERE LOWER(text) LIKE ? OR LOWER(author) LIKE ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setString(1, "%" + keyword.toLowerCase() + "%");  // prepare keyword for search
+	        pstmt.setString(2, "%" + keyword.toLowerCase() + "%");
+	        ResultSet rs = pstmt.executeQuery();            // execute the search query
+	        while (rs.next()) {
+	            list.add(new Question(
+	                rs.getInt("id"),
+	                rs.getString("text"),
+	                rs.getString("author"),
+	                rs.getBoolean("isResolved")
+	            ));
+	        }
+	    }
+	    return list;  // return the list of matching questions
+	}
+
+	// ---------------- Answer Operations ----------------
+
+	// Create: Add a new answer
+	// This method inserts a new answer into the Answers table,
+	// then retrieves the auto-generated ID and sets it in the answer object.
+	public void addAnswer(Answer answer) throws SQLException {
+	    String insertAnswer = "INSERT INTO Answers (question_id, text, author, resolved) VALUES (?, ?, ?, ?)";
+	    try (PreparedStatement pstmt = connection.prepareStatement(insertAnswer, Statement.RETURN_GENERATED_KEYS)) {
+	        pstmt.setInt(1, answer.getQuestionId());      // set the ID of the question this answer belongs to
+	        pstmt.setString(2, answer.getText());           // set the answer text
+	        pstmt.setString(3, answer.getAuthor());         // set the answer author
+	        pstmt.setBoolean(4, answer.getResolved());		// set resolved flag *
+	        pstmt.executeUpdate();                          // execute the insert
+	        ResultSet rs = pstmt.getGeneratedKeys();        // get the generated ID
+	        if (rs.next()) {
+	            answer.setId(rs.getInt(1));                 // update the answer with its new ID
+	        }
+	    }
+	}
+
+	// Read: Get an answer by its ID
+	// This method retrieves a specific answer from the database using its ID.
+	public Answer getAnswerById(int id) throws SQLException {
+	    String query = "SELECT * FROM Answers WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setInt(1, id);                           // set the answer ID
+	        ResultSet rs = pstmt.executeQuery();           // execute the query
+	        if (rs.next()) {
+	            return new Answer(
+	                rs.getInt("id"),
+	                rs.getInt("question_id"),
+	                rs.getString("text"),
+	                rs.getString("author"),
+	                rs.getBoolean("resolved") 
+	            );
+	        }
+	    }
+	    return null;  // return null if no answer is found
+	}
+
+	// Read: Get all answers
+	// This method retrieves all answers from the database and returns them as a list.
+	public List<Answer> getAllAnswers() throws SQLException {
+	    List<Answer> list = new ArrayList<>();
+	    String query = "SELECT * FROM Answers";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        ResultSet rs = pstmt.executeQuery();           // execute the query to get all answers
+	        while (rs.next()) {
+	            list.add(new Answer(
+	                rs.getInt("id"),
+	                rs.getInt("question_id"),
+	                rs.getString("text"),
+	                rs.getString("author"),
+	                rs.getBoolean("resolved")
+	            ));
+	        }
+	    }
+	    return list;  // return the list of answers
+	}
+
+	// Read: Get all answers for a specific question
+	// This method returns all answers linked to a particular question ID.
+	public List<Answer> getAnswersForQuestion(int questionId) throws SQLException {
+	    List<Answer> list = new ArrayList<>();
+	    String query = "SELECT * FROM Answers WHERE question_id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setInt(1, questionId);                  // set the question ID to filter answers
+	        ResultSet rs = pstmt.executeQuery();           // execute the query
+	        while (rs.next()) {
+	            list.add(new Answer(
+	                rs.getInt("id"),
+	                rs.getInt("question_id"),
+	                rs.getString("text"),
+	                rs.getString("author"),
+	                rs.getBoolean("resolved")
+	            ));
+	        }
+	    }
+	    return list;  // return the list of answers for the question
+	}
+
+	// Update: Update an answer's text
+	// This method updates the text of an answer if the new text is valid.
+	public boolean updateAnswerText(int id, String newText) throws SQLException {
+	    if (!Answer.isValidAnswerText(newText)) {
+	        return false;  // new text is invalid, so don't update
+	    }
+	    String updateQuery = "UPDATE Answers SET text = ? WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(updateQuery)) {
+	        pstmt.setString(1, newText);                  // set the new text
+	        pstmt.setInt(2, id);                          // specify which answer to update
+	        return pstmt.executeUpdate() > 0;             // return true if update was successful
+	    }
+	}
+	
+	//This method updates the answers resolved flag
+	public void updateAnswerResolved(int id, boolean resolved) throws SQLException {
+		String updateQuery = "UPDATE Answers SET resolved = ? WHERE id = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(updateQuery)) {
+			pstmt.setBoolean(1, resolved);			   	   // update resolved flag *
+	        pstmt.setInt(2, id);                           // specify which question to update
+	        pstmt.executeUpdate();            
+		}
+	}
+
+	// Delete: Remove an answer
+	// This method deletes an answer from the database based on its ID.
+	public boolean deleteAnswer(int id) throws SQLException {
+	    String deleteQuery = "DELETE FROM Answers WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(deleteQuery)) {
+	        pstmt.setInt(1, id);                          // set the answer ID to delete
+	        return pstmt.executeUpdate() > 0;             // return true if deletion succeeded
+	    }
+	}
+	
+	// Search: Find answers containing a keyword (case-insensitive) **** EDIT
+	// This method looks for answers whose field includes the given keyword.
+	public List<Answer> searchAnswers(String keyword, int id) {
+		List<Answer> list = new ArrayList<>();
+		String query = "SELECT * FROM Answers WHERE question_id = ? AND (LOWER(text) LIKE ? OR LOWER(author) LIKE ?)";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setInt(1, id);
+			pstmt.setString(2, "%" + keyword.toLowerCase() + "%");
+			pstmt.setString(3, "%" + keyword.toLowerCase() + "%");
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				list.add(new Answer(
+		                rs.getInt("id"),
+		                rs.getInt("question_id"),
+		                rs.getString("text"),
+		                rs.getString("author"),
+		                rs.getBoolean("resolved")
+		            ));
+			}
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	// ----------------- Other User Opeations -------------------
+	
 	// Set a one-time password for a user // Radwan edit begins!!------------------------------------------
     public boolean setOneTimePassword(String userName, String oneTimePassword) {
         String updatePassword = "UPDATE cse360users SET password = ? WHERE userName = ?";
@@ -199,7 +459,6 @@ public class DatabaseHelper {
         }
     }
     
-    // Delete a user from the database
     public boolean deleteUser(String userName) {
         String deleteUser = "DELETE FROM cse360users WHERE userName = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(deleteUser)) {
@@ -215,8 +474,7 @@ public class DatabaseHelper {
             return false;
         }
     }
-
-    // List all users in the database
+    
     public String listUsers() {
         StringBuilder userData = new StringBuilder();
         String listUsers = "SELECT userName, role FROM cse360users";
@@ -232,7 +490,7 @@ public class DatabaseHelper {
         }
         return userData.toString();
     }
-
+    
     // Modify a user's role
     public boolean manageUserRole(String userName, String newRole) {
         String updateRole = "UPDATE cse360users SET role = ? WHERE userName = ?";
@@ -321,8 +579,10 @@ public class DatabaseHelper {
     	}
     }
     
-    // end of Jaari edit --------------------------------------------------------------------
-    
+    // end of Jaari edit ----------------------------------------------------------------
+
+
+
 	// Closes the database connection and statement.
 	public void closeConnection() {
 		try{ 

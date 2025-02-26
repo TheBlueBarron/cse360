@@ -172,8 +172,6 @@ public class DiscussionPage {
         
         // ---------------- Button Handlers ----------------
         
-        // Handle posting a new question.
-        
         // Handle search of questions. **** EDIT
         searchField.setOnAction(e -> {
         	String sText = searchField.getText();
@@ -209,7 +207,7 @@ public class DiscussionPage {
         	}
         });
         
-        
+        // Handle posting a new question.        
         postQuestionButton.setOnAction(e -> {
             String qText = questionTextField.getText().trim();
             String qAuthor = questionAuthorField.getText().trim();
