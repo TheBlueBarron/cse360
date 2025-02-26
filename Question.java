@@ -8,22 +8,25 @@ public class Question {
     private String text;
     // Who asked the question
     private String author;
+    // You can see if the question is resolved
+    private boolean isResolved;
 
-    // Constructor that takes an id, text, and author.
+    // Constructor that takes an id, text, author, isResolved.
     // It throws an error if the question text is empty.
-    public Question(int id, String text, String author) {
+    public Question(int id, String text, String author, boolean isResolved) {
         if (!isValidQuestionText(text)) {
             throw new IllegalArgumentException("Question text cannot be empty.");
         }
         this.id = id;
         this.text = text;
         this.author = author;
+        this.isResolved = isResolved;
     }
     
     // Constructor for creating a new question when we don't have an ID yet.
     // The database will assign the ID later.
-    public Question(String text, String author) {
-        this(-1, text, author);
+    public Question(String text, String author, boolean isResolved) {
+        this(-1, text, author, isResolved);
     }
 
     // Checks if the question text is valid (not null or blank)
@@ -44,6 +47,14 @@ public class Question {
     // Getter for the question text
     public String getText() {
         return text;
+    }
+    // Getter for resolved flag
+    public boolean getIsResolved() {
+    	return isResolved;
+    }
+    // Getter for resolved flag
+    public void markAsResolved() {
+    	isResolved = true;
     }
     
     // Setter for the question text; validates before setting

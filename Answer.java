@@ -10,10 +10,12 @@ public class Answer {
     private String text;
     // Who posted the answer.
     private String author;
+    // See if an answer resolved a particular question
+    private boolean resolved;
     
-    // Constructor that takes an id, questionId, text, and author.
+    // Constructor that takes an id, questionId, text, author, and resolved.
     // It throws an error if the answer text is empty.
-    public Answer(int id, int questionId, String text, String author) {
+    public Answer(int id, int questionId, String text, String author, boolean resolved) {
         if (!isValidAnswerText(text)) {
             throw new IllegalArgumentException("Answer text cannot be empty.");
         }
@@ -21,12 +23,13 @@ public class Answer {
         this.questionId = questionId;
         this.text = text;
         this.author = author;
+        this.resolved = resolved;
     }
     
     // Constructor for creating a new answer when the ID isn't known yet.
     // The database will assign the ID later.
-    public Answer(int questionId, String text, String author) {
-        this(-1, questionId, text, author);
+    public Answer(int questionId, String text, String author, boolean resolved) {
+        this(-1, questionId, text, author, resolved);
     }
     
     // Checks if the answer text is valid (i.e., not null or empty).
@@ -42,6 +45,14 @@ public class Answer {
     // Setter for the answer ID.
     public void setId(int id) { 
         this.id = id; 
+    }
+    // Getter for the resolved flag
+    public boolean getResolved() {
+    	return resolved;
+    }
+    // Set an answer as resolved
+    public void markAsResolver() {
+    	resolved = true;
     }
     
     // Getter for the question ID associated with this answer.
