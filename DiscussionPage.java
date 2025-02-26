@@ -204,8 +204,8 @@ public class DiscussionPage {
             if (qAuthor.isEmpty()) {
                 qAuthor = "Anonymous";
             }
-            // Create a new question object.
-            Question newQuestion = new Question(qText, qAuthor);
+            // Create a new question object with default resolved parameter.
+            Question newQuestion = new Question(qText, qAuthor, false);
             try {
                 // Add it to the database.
                 dbHelper.addQuestion(newQuestion);
@@ -237,8 +237,8 @@ public class DiscussionPage {
             if (aAuthor.isEmpty()) {
                 aAuthor = "Anonymous";
             }
-            // Create a new answer for the selected question.
-            Answer newAnswer = new Answer(selectedQuestion.getId(), aText, aAuthor);
+            // Create a new answer for the selected question with default resolved parameter.
+            Answer newAnswer = new Answer(selectedQuestion.getId(), aText, aAuthor, false);
             try {
                 // Add the answer to the database.
                 dbHelper.addAnswer(newAnswer);
