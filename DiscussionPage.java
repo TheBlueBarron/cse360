@@ -15,7 +15,8 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.HBox; 
-import javafx.scene.layout.VBox; 
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage; 
 import java.sql.SQLException; 
 import java.util.List;
@@ -32,7 +33,7 @@ public class DiscussionPage {
     // Observable list for answers and its ListView for UI display
     private ObservableList<Answer> answersList;
     private ListView<Answer> answersListView;
-    // Observable lists for search results **** EDIT
+    // Observable lists for search results ** EDIT
     private ObservableList<Question> questionsResults;
     private ObservableList<Answer> answersResults;
 
@@ -76,6 +77,12 @@ public class DiscussionPage {
                 } else {
                     // Display question ID, text, and author in the list.
                     setText("[" + q.getId() + "] " + q.getText() + " (by " + q.getAuthor() + ")");
+                    if(q.getIsResolved() == true) {				//sets the color to green if resolved and black otherwise
+                    	setTextFill(Color.DARKSEAGREEN); 
+                    }
+                    else {
+                    	setTextFill(Color.BLACK);
+                    }
                 }
             }
         });
@@ -85,7 +92,8 @@ public class DiscussionPage {
         Button refreshQuestionsButton = new Button("Refresh Questions");
         Button editQuestionButton = new Button("Edit Selected Question");
         Button deleteQuestionButton = new Button("Delete Selected Question");
-        HBox questionOperationsBox = new HBox(10, refreshQuestionsButton, editQuestionButton, deleteQuestionButton);
+        Button markAsResolvedButton = new Button("Mark Selected Question & Answer As Resolved"); //*Button to mark as resolved
+        HBox questionOperationsBox = new HBox(10, refreshQuestionsButton, editQuestionButton, deleteQuestionButton, markAsResolvedButton);
         questionOperationsBox.setPadding(new Insets(5));
         
         // ---------------- Search Operation Fields & Buttons ---------------- **** EDIT
@@ -105,6 +113,12 @@ public class DiscussionPage {
                 } else {
                     // Display answer ID, text, and author in the list.
                     setText("[" + a.getId() + "] " + a.getText() + " (by " + a.getAuthor() + ")");
+                    if(a.getResolved() == true) {				//sets the color to green if resolved and black otherwise
+                    	setTextFill(Color.DARKSEAGREEN); 
+                    }
+                    else {
+                    	setTextFill(Color.BLACK);
+                    }
                 }
             }
         });
@@ -158,6 +172,8 @@ public class DiscussionPage {
         
         // ---------------- Button Handlers ----------------
         
+        // Handle posting a new question.
+        
         // Handle search of questions. **** EDIT
         searchField.setOnAction(e -> {
         	String sText = searchField.getText();
@@ -193,10 +209,11 @@ public class DiscussionPage {
         	}
         });
         
-        // Handle posting a new question.
+        
         postQuestionButton.setOnAction(e -> {
             String qText = questionTextField.getText().trim();
             String qAuthor = questionAuthorField.getText().trim();
+            boolean isResolved = false;
             if (qText.isEmpty()) {
                 showAlert("Error", "Question text cannot be empty.");
                 return;
@@ -204,8 +221,8 @@ public class DiscussionPage {
             if (qAuthor.isEmpty()) {
                 qAuthor = "Anonymous";
             }
-            // Create a new question object with default resolved parameter.
-            Question newQuestion = new Question(qText, qAuthor, false);
+            // Create a new question object.
+            Question newQuestion = new Question(qText, qAuthor, isResolved);
             try {
                 // Add it to the database.
                 dbHelper.addQuestion(newQuestion);
@@ -230,6 +247,7 @@ public class DiscussionPage {
             }
             String aText = answerTextField.getText().trim();
             String aAuthor = answerAuthorField.getText().trim();
+            boolean resolved = false;
             if (aText.isEmpty()) {
                 showAlert("Error", "Answer text cannot be empty.");
                 return;
@@ -237,8 +255,8 @@ public class DiscussionPage {
             if (aAuthor.isEmpty()) {
                 aAuthor = "Anonymous";
             }
-            // Create a new answer for the selected question with default resolved parameter.
-            Answer newAnswer = new Answer(selectedQuestion.getId(), aText, aAuthor, false);
+            // Create a new answer for the selected question.
+            Answer newAnswer = new Answer(selectedQuestion.getId(), aText, aAuthor, resolved);
             try {
                 // Add the answer to the database.
                 dbHelper.addAnswer(newAnswer);
@@ -254,11 +272,7 @@ public class DiscussionPage {
         });
         
         // Refresh buttons for questions and answers.
-        // **** EDIT: Added a clear to the search field upon pressing
-        refreshQuestionsButton.setOnAction(e -> {
-        	loadQuestions();
-        	searchField.clear();
-        });
+        refreshQuestionsButton.setOnAction(e -> {loadQuestions(); searchField.clear();});
         refreshAnswersButton.setOnAction(e -> {
             Question selectedQuestion = questionsListView.getSelectionModel().getSelectedItem();
             if (selectedQuestion != null) {
@@ -330,6 +344,25 @@ public class DiscussionPage {
             }
         });
         
+        // Mark Question + Answer as resolved.
+        markAsResolvedButton.setOnAction(e -> { 						
+            Question selectedQuestion = questionsListView.getSelectionModel().getSelectedItem();	// *get selected question
+            Answer selectedAnswer = answersListView.getSelectionModel().getSelectedItem();			// and selected answer
+            if(selectedQuestion != null && selectedAnswer != null) {	
+            	selectedQuestion.markAsResolved();													// mark question resolved
+            	selectedAnswer.markAsResolver();													// and answer
+            }
+            try {
+            dbHelper.updateIsResolvedQuestion(selectedQuestion.getId(), true);						// update Question in DB
+            dbHelper.updateAnswerResolved(selectedAnswer.getId(), true);							// and answer*
+            } catch(SQLException ex){
+            	ex.printStackTrace();
+            	showAlert("Error", "Database error: " + ex.getMessage());
+            }
+        	loadQuestions(); 																		// *refresh to see changes
+        	loadAnswers(selectedAnswer.getQuestionId());
+        });
+        
         // ---------------- Edit and Delete Operations for Answers ----------------
         
         // Edit a selected answer.
@@ -397,6 +430,7 @@ public class DiscussionPage {
             }
         });
     }
+
     // ---------------- Helper Methods ----------------
 
     // Loads all questions from the database into the ListView.
