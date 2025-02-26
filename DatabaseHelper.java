@@ -33,7 +33,7 @@ public class DatabaseHelper {
 			connection = DriverManager.getConnection(DB_URL, USER, PASS);
 			statement = connection.createStatement(); 
 			// You can use this command to clear the database and restart from fresh.
-			// statement.execute("DROP ALL OBJECTS");
+			//statement.execute("DROP ALL OBJECTS");
 
 			createTables();  // Create the necessary tables if they don't exist
 		} catch (ClassNotFoundException e) {
@@ -60,7 +60,8 @@ public class DatabaseHelper {
 	    String questionsTable = "CREATE TABLE IF NOT EXISTS Questions ("
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
 	            + "text VARCHAR(1024), "
-	            + "author VARCHAR(255)) ";
+	            + "author VARCHAR(255), "
+	            + "isResolved BOOLEAN)"; 
 	    statement.execute(questionsTable);
 	    
 	    //Answers table
@@ -69,6 +70,7 @@ public class DatabaseHelper {
 	            + "question_id INT, "
 	            + "text VARCHAR(1024), "
 	            + "author VARCHAR(255), "
+	            + "resolved BOOLEAN, " 
 	            + "FOREIGN KEY (question_id) REFERENCES Questions(id) ON DELETE CASCADE)";
 	    statement.execute(answersTable);
 	}
@@ -192,10 +194,11 @@ public class DatabaseHelper {
 	// It uses a prepared statement to set the question's text and author,
 	// then it retrieves the auto-generated ID and updates the question object.
 	public void addQuestion(Question question) throws SQLException {
-	    String insertQuestion = "INSERT INTO Questions (text, author) VALUES (?, ?)";
+	    String insertQuestion = "INSERT INTO Questions (text, author, isResolved) VALUES (?, ?, ?)";
 	    try (PreparedStatement pstmt = connection.prepareStatement(insertQuestion, Statement.RETURN_GENERATED_KEYS)) {
 	        pstmt.setString(1, question.getText());       // set the question text
 	        pstmt.setString(2, question.getAuthor());       // set the question author
+	        pstmt.setBoolean(3, question.getIsResolved());
 	        pstmt.executeUpdate();                          // run the insert
 	        ResultSet rs = pstmt.getGeneratedKeys();        // get the new ID from the database
 	        if (rs.next()) {
@@ -215,7 +218,8 @@ public class DatabaseHelper {
 	            return new Question(
 	                rs.getInt("id"),
 	                rs.getString("text"),
-	                rs.getString("author")
+	                rs.getString("author"),
+	                rs.getBoolean("isResolved") 			
 	            );
 	        }
 	    }
@@ -233,7 +237,9 @@ public class DatabaseHelper {
 	            list.add(new Question(
 	                rs.getInt("id"),
 	                rs.getString("text"),
-	                rs.getString("author")
+	                rs.getString("author"),
+	                rs.getBoolean("isResolved") 
+	                
 	            ));
 	        }
 	    }
@@ -253,6 +259,16 @@ public class DatabaseHelper {
 	        pstmt.setInt(2, id);                           // specify which question to update
 	        return pstmt.executeUpdate() > 0;              // return true if at least one row was updated
 	    }
+	}
+	
+	//This method updates the questions resolved flag
+	public void updateIsResolvedQuestion(int id, boolean isResolved) throws SQLException {
+		String updateQuery = "UPDATE Questions SET isResolved = ? WHERE id = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(updateQuery)) {
+			pstmt.setBoolean(1, isResolved);			   // update resolved flag
+	        pstmt.setInt(2, id);                           // specify which question to update
+	        pstmt.executeUpdate();            
+		}
 	}
 
 	// Delete: Remove a question
@@ -279,7 +295,8 @@ public class DatabaseHelper {
 	            list.add(new Question(
 	                rs.getInt("id"),
 	                rs.getString("text"),
-	                rs.getString("author")
+	                rs.getString("author"),
+	                rs.getBoolean("isResolved")
 	            ));
 	        }
 	    }
@@ -292,11 +309,12 @@ public class DatabaseHelper {
 	// This method inserts a new answer into the Answers table,
 	// then retrieves the auto-generated ID and sets it in the answer object.
 	public void addAnswer(Answer answer) throws SQLException {
-	    String insertAnswer = "INSERT INTO Answers (question_id, text, author) VALUES (?, ?, ?)";
+	    String insertAnswer = "INSERT INTO Answers (question_id, text, author, resolved) VALUES (?, ?, ?, ?)";
 	    try (PreparedStatement pstmt = connection.prepareStatement(insertAnswer, Statement.RETURN_GENERATED_KEYS)) {
 	        pstmt.setInt(1, answer.getQuestionId());      // set the ID of the question this answer belongs to
 	        pstmt.setString(2, answer.getText());           // set the answer text
 	        pstmt.setString(3, answer.getAuthor());         // set the answer author
+	        pstmt.setBoolean(4, answer.getResolved());		// set resolved flag *
 	        pstmt.executeUpdate();                          // execute the insert
 	        ResultSet rs = pstmt.getGeneratedKeys();        // get the generated ID
 	        if (rs.next()) {
@@ -317,7 +335,8 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getInt("question_id"),
 	                rs.getString("text"),
-	                rs.getString("author")
+	                rs.getString("author"),
+	                rs.getBoolean("resolved") 
 	            );
 	        }
 	    }
@@ -336,7 +355,8 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getInt("question_id"),
 	                rs.getString("text"),
-	                rs.getString("author")
+	                rs.getString("author"),
+	                rs.getBoolean("resolved")
 	            ));
 	        }
 	    }
@@ -356,7 +376,8 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getInt("question_id"),
 	                rs.getString("text"),
-	                rs.getString("author")
+	                rs.getString("author"),
+	                rs.getBoolean("resolved")
 	            ));
 	        }
 	    }
@@ -376,6 +397,16 @@ public class DatabaseHelper {
 	        return pstmt.executeUpdate() > 0;             // return true if update was successful
 	    }
 	}
+	
+	//This method updates the answers resolved flag
+	public void updateAnswerResolved(int id, boolean resolved) throws SQLException {
+		String updateQuery = "UPDATE Answers SET resolved = ? WHERE id = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(updateQuery)) {
+			pstmt.setBoolean(1, resolved);			   	   // update resolved flag *
+	        pstmt.setInt(2, id);                           // specify which question to update
+	        pstmt.executeUpdate();            
+		}
+	}
 
 	// Delete: Remove an answer
 	// This method deletes an answer from the database based on its ID.
@@ -387,30 +418,142 @@ public class DatabaseHelper {
 	    }
 	}
 	
-	// Search: Find answers containing a keyword (case-insensitive) **** EDIT
-	// This method looks for answers whose field includes the given keyword.
-	public List<Answer> searchAnswers(String keyword, int id) {
-		List<Answer> list = new ArrayList<>();
-		String query = "SELECT * FROM Answers WHERE question_id = ? AND (LOWER(text) LIKE ? OR LOWER(author) LIKE ?)";
-		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-			pstmt.setInt(1, id);
-			pstmt.setString(2, "%" + keyword.toLowerCase() + "%");
-			pstmt.setString(3, "%" + keyword.toLowerCase() + "%");
-			ResultSet rs = pstmt.executeQuery();
-			while(rs.next()) {
-				list.add(new Answer(
-		                rs.getInt("id"),
-		                rs.getInt("question_id"),
-		                rs.getString("text"),
-		                rs.getString("author")
-		            ));
-			}
-			return list;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+	// Set a one-time password for a user // Radwan edit begins!!------------------------------------------
+    public boolean setOneTimePassword(String userName, String oneTimePassword) {
+        String updatePassword = "UPDATE cse360users SET password = ? WHERE userName = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(updatePassword)) {
+            pstmt.setString(1, oneTimePassword);
+            pstmt.setString(2, userName);
+            return pstmt.executeUpdate() > 0; // Returns true if password was successfully updated
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public boolean deleteUser(String userName) {
+        String deleteUser = "DELETE FROM cse360users WHERE userName = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(deleteUser)) {
+            
+        	if (getUserRole(userName).contains("admin")) {
+            	return false;
+            }
+        	
+        	pstmt.setString(1, userName);
+            return pstmt.executeUpdate() > 0; // Returns true if user was successfully deleted
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public String listUsers() {
+        StringBuilder userData = new StringBuilder();
+        String listUsers = "SELECT userName, role FROM cse360users";
+        try (PreparedStatement pstmt = connection.prepareStatement(listUsers);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                userData.append("User: ").append(rs.getString("userName")).append(", Role: ")
+                .append(rs.getString("role")).append("\n");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to fetch users."; // Return error message if something goes wrong
+        }
+        return userData.toString();
+    }
+    
+    // Modify a user's role
+    public boolean manageUserRole(String userName, String newRole) {
+        String updateRole = "UPDATE cse360users SET role = ? WHERE userName = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(updateRole)) {
+            pstmt.setString(1, newRole);
+            pstmt.setString(2, userName);
+            return pstmt.executeUpdate() > 0; // Returns true if the role was successfully updated
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    } // Radwan edit ends!! ------------------------------------------------------------------
+    
+    // Jaari edit ----------------------------------------------------------------------------
+    // Adds a role to a user to allow multiple options.
+    public boolean addUserRole(String userName, String addedRole) {
+    	String addRole = "UPDATE cse360users SET role = ? WHERE userName = ?";
+    	try (PreparedStatement pstmt = connection.prepareStatement(addRole)) {
+    		
+    		// Check that user does not already have this role
+    		if (getUserRole(userName).contains(addedRole)) {
+    			return false;
+    		}
+    		
+    		// If not, add desired role to role attribute
+    		pstmt.setString(1, getUserRole(userName) + "," + addedRole);
+    		pstmt.setString(2, userName);
+    		
+    		return pstmt.executeUpdate() > 0; // Returns true if the role was successfully added 
+    	} catch (SQLException e) {
+    		e.printStackTrace();
+            return false;
+    	}
+    } 
+    public boolean removeUserRole(String userName, String removedRole) {
+    	String removeRole = "UPDATE cse360users SET role = ? WHERE userName = ?";
+    	try (PreparedStatement pstmt = connection.prepareStatement(removeRole)) {
+    		
+    		// Checks that the user has the role to remove
+    		if (!getUserRole(userName).contains(removedRole)) {
+    			return false;
+    		}
+    		
+    		// Checks if the role being removed is their admin role;
+    		// if it is, cancel the operation
+    		if (removedRole.equals("admin")) {
+    			return false;
+    		}
+    		
+    		// If the user only has the one role, restore to default
+    		if (!getUserRole(userName).contains(",")) {
+    			pstmt.setString(1, "user");
+    			pstmt.setString(2, userName);
+    			return pstmt.executeUpdate() > 0; // Returns true if the role was successfully added 
+    		}
+    		
+    		/* Out-of-place algorithm to remove the desired role from the user's
+    		 * attributes; shouldn't pose too much of a runtime issue as max
+    		 * length of user's role can be 5
+    		 */
+    		String[] roles = getUserRole(userName).split(",");
+    		String[] newRoles = new String[roles.length - 1];
+    		int newRolesPointer = 0;
+    		for (int i = 0; i < roles.length; i++) {
+    			if (!roles[i].equals(removedRole)) {
+    				newRoles[newRolesPointer] = roles[i];
+    				newRolesPointer++;
+    			}
+    		}
+    		
+    		if (newRolesPointer > 1) {
+    			// If user has multiple roles still, join them into new role value
+    			pstmt.setString(1, String.join(",", newRoles));
+    			pstmt.setString(2, userName);
+    		} else {
+    			// If user only has one role after for loop, simply set that as their role
+    			pstmt.setString(1, newRoles[0]);
+    			pstmt.setString(2, userName);
+    		}
+    		
+    		return pstmt.executeUpdate() > 0; // Returns true if the role was successfully added
+    		
+    	} catch (SQLException e) {
+    		e.printStackTrace();
+    		return false;
+    	}
+    }
+    
+    // end of Jaari edit ----------------------------------------------------------------
+
+
 
 	// Closes the database connection and statement.
 	public void closeConnection() {
