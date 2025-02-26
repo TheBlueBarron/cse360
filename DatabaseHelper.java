@@ -418,6 +418,34 @@ public class DatabaseHelper {
 	    }
 	}
 	
+	// Search: Find answers containing a keyword (case-insensitive) **** EDIT
+	// This method looks for answers whose field includes the given keyword.
+	public List<Answer> searchAnswers(String keyword, int id) {
+		List<Answer> list = new ArrayList<>();
+		String query = "SELECT * FROM Answers WHERE question_id = ? AND (LOWER(text) LIKE ? OR LOWER(author) LIKE ?)";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setInt(1, id);
+			pstmt.setString(2, "%" + keyword.toLowerCase() + "%");
+			pstmt.setString(3, "%" + keyword.toLowerCase() + "%");
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				list.add(new Answer(
+		                rs.getInt("id"),
+		                rs.getInt("question_id"),
+		                rs.getString("text"),
+		                rs.getString("author"),
+				rs.getBoolean("resolved")
+		            ));
+			}
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	// ----------------- Other User Opeations -------------------
+	
 	// Set a one-time password for a user // Radwan edit begins!!------------------------------------------
     public boolean setOneTimePassword(String userName, String oneTimePassword) {
         String updatePassword = "UPDATE cse360users SET password = ? WHERE userName = ?";
