@@ -7,7 +7,7 @@ This phase of the CSE360 project implements functionality from the "Student" use
    - Java JDK 23.0.1 Library
    - JavaFX JDK 23.0.1 Library
    - H2 Library
-2. Download TeamProjPhase1.zip to your machine.
+2. Download TeamProjPhase2.zip to your machine.
 3. Unzip and import into your desired workspace; this project was built in Eclipse, therefore the following instructions are for Eclipse.
    - Ensure the Modulepath contains both JavaFX and the jdk-23 system library, and ensure the classpath contains H2.
 
