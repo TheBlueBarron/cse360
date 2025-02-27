@@ -1,36 +1,37 @@
-# CSE360 Wednesday 44 Team Project: Phase 1
+# CSE360 Wednesday 44 Team Project: Phase 2
 
-This phase of the CSE360 project implements functionality from the "New Users" and "Admin" user stories.
+Overview
+This Java application provides a platform for users to post questions and answers, similar to a discussion forum. The application allows for CRUD operations (Create, Read, Update, Delete) on questions and answers, as well as searching and marking questions and answers as resolved.
 
-## Installation
-1. Dependencies:
-   - Java JDK 23.0.1 Library
-   - JavaFX JDK 23.0.1 Library
-   - H2 Library
-2. Download TeamProjPhase1.zip to your machine.
-3. Unzip and import into your desired workspace; this project was built in Eclipse, therefore the following instructions are for Eclipse.
-   - Ensure the Modulepath contains both JavaFX and the jdk-23 system library, and ensure the classpath contains H2.
+Classes Description
+DatabaseHelper:
+Handles database connections and operations.
+Manages user registration, question and answer manipulation.
+Ensures questions and answers can be added, updated, deleted, and searched through.
 
-## Usage
-Begin the program by running StartCSE360.java.
+Question and Questions:
+Question: Represents a single question with properties like text, author, and resolution status.
+Questions: Manages a list of questions, supporting operations like add, delete, and search.
 
-If a reset is needed, enter DatabaseHelper.java and uncomment line 37. 
-  - Ensure that it is commented if you wish to save input to the database.
+Answer and Answers:
+Answer: Represents a single answer linked to a question, including the text and author.
+Answers: Manages a list of answers, providing functionalities to add, update, and remove answers.
 
-## Contributing
-Contributions are limited to the Wednesday 44 group as listed below. Other pull requests are discouraged.
+DiscussionPage:
+Interfaces with DatabaseHelper to display and manage the user interface for questions and answers.
+Allows users to post new questions and answers, edit existing ones, and mark them as resolved.
 
-## Authors
-Radwan Alandonosi, Samuel Coles, Luke Humbert, Jaari Moreno, Xander Petty, Dalton Yu
+StudentHomePage:
+Displays a simple welcome page for students.
+Provides links to log out or navigate to the discussion forum.
 
-## Other Information
-Here are the links to our stand up meetings & program screencasts:
+TestAutomation:
+Automated tests for validating the functionality of CRUD operations, search features, and resolution status updates.
 
-https://drive.google.com/file/d/1KSgbRpVD_N69JoKFm1iIvCMcl9KLxbPY/view?usp=sharing 
+Features
+CRUD Operations: Create, read, update, and delete questions and answers.
+Search Functionality: Search for questions or answers based on keywords.
+Resolution Flag: Mark questions or answers as resolved to indicate closure.
 
-https://drive.google.com/file/d/17p3UfVJG6kR8sLZA6-tsUsi2Uo4InbVM/view?usp=sharing 
-
-https://drive.google.com/file/d/1-GtFJ4TZ-LB0AxBTr2Vlw1XVsueWF-dP/view?usp=sharing
-
-https://drive.google.com/file/d/1UVokcxIGdNueIqP9QJ0n-yR8YpHG8JGV/view?usp=sharing
-   
+Running the Application:
+To start the application, launch it from the StartCSE360 class. Follow the prompts to set up a new student user account. Once registered and logged in, you can navigate to the Discussion Forum to participate in posting questions and answers.
