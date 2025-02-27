@@ -1,6 +1,6 @@
-# CSE360 Wednesday 44 Team Project: Phase 1
+# CSE360 Wednesday 44 Team Project: Phase 2
 
-This phase of the CSE360 project implements functionality from the "New Users" and "Admin" user stories.
+This phase of the CSE360 project implements functionality from the "Student" user stories.
 
 ## Installation
 1. Dependencies:
@@ -26,11 +26,4 @@ Radwan Alandonosi, Samuel Coles, Luke Humbert, Jaari Moreno, Xander Petty, Dalto
 ## Other Information
 Here are the links to our stand up meetings & program screencasts:
 
-https://drive.google.com/file/d/1KSgbRpVD_N69JoKFm1iIvCMcl9KLxbPY/view?usp=sharing 
-
-https://drive.google.com/file/d/17p3UfVJG6kR8sLZA6-tsUsi2Uo4InbVM/view?usp=sharing 
-
-https://drive.google.com/file/d/1-GtFJ4TZ-LB0AxBTr2Vlw1XVsueWF-dP/view?usp=sharing
-
-https://drive.google.com/file/d/1UVokcxIGdNueIqP9QJ0n-yR8YpHG8JGV/view?usp=sharing
    
