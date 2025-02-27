@@ -35,3 +35,5 @@ Resolution Flag: Mark questions or answers as resolved to indicate closure.
 
 Running the Application:
 To start the application, launch it from the StartCSE360 class. Follow the prompts to set up a new student user account. Once registered and logged in, you can navigate to the Discussion Forum to participate in posting questions and answers.
+
+***Note: Please download the TeamProjPhase2.zip and run into your machine!
