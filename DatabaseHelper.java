@@ -3,6 +3,7 @@ package databasePart1;
 import application.User; 
 import application.Question;
 import application.Review;
+
 import application.Answer; 
 import java.sql.*; 
 import java.util.ArrayList; 
@@ -74,6 +75,7 @@ public class DatabaseHelper {
 	            + "resolved BOOLEAN, " 
 	            + "FOREIGN KEY (question_id) REFERENCES Questions(id) ON DELETE CASCADE)";
 	    statement.execute(answersTable);
+
 	    
 	    String reviewsTable = "CREATE TABLE IF NOT EXISTS Reviews ("
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
@@ -452,6 +454,7 @@ public class DatabaseHelper {
 			return null;
 		}
 	}
+
 
 	
 	// ---------------- Review Operations ----------------

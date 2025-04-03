@@ -8,6 +8,16 @@ DatabaseHelper:
 Handles database connections and operations.
 Manages user registration, question and answer manipulation.
 Ensures questions and answers can be added, updated, deleted, and searched through.
+This phase of the CSE360 project implements functionality from the "Student" user stories.
+
+## Installation
+1. Dependencies:
+   - Java JDK 23.0.1 Library
+   - JavaFX JDK 23.0.1 Library
+   - H2 Library
+2. Download TeamProjPhase2.zip to your machine.
+3. Unzip and import into your desired workspace; this project was built in Eclipse, therefore the following instructions are for Eclipse.
+   - Ensure the Modulepath contains both JavaFX and the jdk-23 system library, and ensure the classpath contains H2.
 
 Question and Questions:
 Question: Represents a single question with properties like text, author, and resolution status.
@@ -37,3 +47,18 @@ Running the Application:
 To start the application, launch it from the StartCSE360 class. Follow the prompts to set up a new student user account. Once registered and logged in, you can navigate to the Discussion Forum to participate in posting questions and answers.
 
 ***Note: Please download the TeamProjPhase2.zip and run into your machine!
+Stand Up Meetings:
+
+https://drive.google.com/file/d/1H18rJOzNveG4V3t9Ei2Tkh7Zd6O6oGPk/view?usp=sharing
+
+https://drive.google.com/file/d/1BHZ54fPE-_x_hVpXmNdmM_LmVMqg7lkK/view?usp=sharing 
+
+Program Screencasts:
+
+https://asu.zoom.us/rec/share/LrToXmiyHEBS06UJhVUn9Y518qx92DJmN0n8JhNpJslQR9yhh768kTV-mF8fd31o.tqV4feKhDoxQIhtw?startTime=1740630604000
+
+https://asu.zoom.us/rec/share/LrToXmiyHEBS06UJhVUn9Y518qx92DJmN0n8JhNpJslQR9yhh768kTV-mF8fd31o.tqV4feKhDoxQIhtw?startTime=1740630604000
+
+https://asu.zoom.us/rec/share/GsRZ8VJCzIM4XD9Sto1me7jn4RoD3Oop7w29IMlDik2sTxiREwS9EjkgLehhtMcb.mU4Vd7CHj7wDm5sf?startTime=1740632198000
+
+https://www.youtube.com/watch?v=VzJutLqiGHM   

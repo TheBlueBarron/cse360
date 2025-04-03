@@ -1,7 +1,9 @@
 package application;
 
 import databasePart1.DatabaseHelper; 
+
 import databasePart1.GlobalVars;
+
 import javafx.application.Platform; 
 import javafx.collections.FXCollections; 
 import javafx.collections.ObservableList; 
@@ -10,7 +12,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert; 
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+
 import javafx.scene.control.CheckBox;
+
 import javafx.scene.control.Label; 
 import javafx.scene.control.ListCell; 
 import javafx.scene.control.ListView; 
@@ -60,6 +64,16 @@ public class DiscussionPage {
     public void show(Stage primaryStage) {
     	String username = GlobalVars.cur_user.getUserName();
         primaryStage.setTitle(username);
+
+    // Constructor that takes the DatabaseHelper as a parameter
+    public DiscussionPage(DatabaseHelper dbHelper) {
+        this.dbHelper = dbHelper;
+    }
+
+    // This method sets up and shows the discussion forum page on the given stage.
+    public void show(Stage primaryStage) {
+        primaryStage.setTitle("Discussion Forum");
+
         
         // ---------------- Main Layout ----------------
         // Create a vertical box as the main container with some spacing and padding.
@@ -71,12 +85,21 @@ public class DiscussionPage {
         Label newQuestionLabel = new Label("Post a New Question:");
         TextField questionTextField = new TextField();
         questionTextField.setPromptText("Enter your question here");
+
         CheckBox isAnon = new CheckBox("Anonymous");
         isAnon.setIndeterminate(false);
         Button postQuestionButton = new Button("Post Question");
         
         // HBox to hold the new question input fields and button.
         HBox newQuestionBox = new HBox(10, questionTextField, isAnon,postQuestionButton);
+
+        TextField questionAuthorField = new TextField();
+        questionAuthorField.setPromptText("Your name (optional, default: Anonymous)");
+        Button postQuestionButton = new Button("Post Question");
+        
+        // HBox to hold the new question input fields and button.
+        HBox newQuestionBox = new HBox(10, questionTextField, questionAuthorField, postQuestionButton);
+
         newQuestionBox.setPadding(new Insets(5));
         
         // ---------------- Questions List Section ----------------
@@ -143,6 +166,7 @@ public class DiscussionPage {
         Button refreshAnswersButton = new Button("Refresh Answers");
         Button editAnswerButton = new Button("Edit Selected Answer");
         Button deleteAnswerButton = new Button("Delete Selected Answer");
+
         Button reviewAnswerButton = new Button("Review Selected Answer");
         Button viewReviewButton = new Button("View Selected Answer Reviews");
         HBox answerOperationsBox;
@@ -168,13 +192,31 @@ public class DiscussionPage {
    
         Button postAnswerButton = new Button("Post Answer");
         HBox newAnswerBox = new HBox(10, answerTextField, isAnon1, postAnswerButton);
+        HBox answerOperationsBox = new HBox(10, refreshAnswersButton, editAnswerButton, deleteAnswerButton);
+        answerOperationsBox.setPadding(new Insets(5));
+        
+        // ---------------- New Answer Section ----------------
+        // Label and input fields for posting a new answer.
+        Label newAnswerLabel = new Label("Post a New Answer:");
+        TextField answerTextField = new TextField();
+        answerTextField.setPromptText("Enter your answer here");
+        TextField answerAuthorField = new TextField();
+        answerAuthorField.setPromptText("Your name (optional, default: Anonymous)");
+        Button postAnswerButton = new Button("Post Answer");
+        HBox newAnswerBox = new HBox(10, answerTextField, answerAuthorField, postAnswerButton);
+
         newAnswerBox.setPadding(new Insets(5));
         
         // ---------------- Assemble Layout ----------------
         // Add all sections to the main layout in order.
         mainLayout.getChildren().addAll(
+
         		searchField, newQuestionLabel, newQuestionBox, 
             questionsLabel, questionsListView, questionOperationsBox, 
+
+            newQuestionLabel, newQuestionBox, 
+            questionsLabel, questionsListView, questionOperationsBox, searchField, 
+
             answersLabel, answersListView, answerOperationsBox, 
             newAnswerLabel, newAnswerBox
         );
@@ -200,6 +242,7 @@ public class DiscussionPage {
         
         // ---------------- Button Handlers ----------------
         
+
         // Handle posting a new question.
         
         // Handle search of questions. **** EDIT
@@ -236,7 +279,7 @@ public class DiscussionPage {
         		showAlert("Error", "Failed to search.");
         	}
         });
-        
+
         
         postQuestionButton.setOnAction(e -> {
             String qText = questionTextField.getText().trim();
@@ -245,12 +288,21 @@ public class DiscussionPage {
             if (isAnon.isSelected()) {
             	qAuthor = "Anonymous";
             }
+
+        // Handle posting a new question.        
+        postQuestionButton.setOnAction(e -> {
+            String qText = questionTextField.getText().trim();
+            String qAuthor = questionAuthorField.getText().trim();
+
             boolean isResolved = false;
             if (qText.isEmpty()) {
                 showAlert("Error", "Question text cannot be empty.");
                 return;
             }
           
+            if (qAuthor.isEmpty()) {
+                qAuthor = "Anonymous";
+            }
             // Create a new question object.
             Question newQuestion = new Question(qText, qAuthor, isResolved);
             try {
@@ -260,6 +312,7 @@ public class DiscussionPage {
                 // Clear input fields and reload questions.
                 questionTextField.clear();
                 isAnon1.setIndeterminate(false);
+                questionAuthorField.clear();
                 loadQuestions();
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -280,6 +333,7 @@ public class DiscussionPage {
             if (isAnon1.isSelected()) {
             	aAuthor = "Anonymous";
             }
+            String aAuthor = answerAuthorField.getText().trim();
             boolean resolved = false;
             if (aText.isEmpty()) {
                 showAlert("Error", "Answer text cannot be empty.");
@@ -298,6 +352,10 @@ public class DiscussionPage {
                 // Clear input fields and reload answers for the selected question.
                 answerTextField.clear();
                 isAnon1.setIndeterminate(false);
+                showAlert("Success", "Answer posted successfully!");
+                // Clear input fields and reload answers for the selected question.
+                answerTextField.clear();
+                answerAuthorField.clear();
                 loadAnswers(selectedQuestion.getId());
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -488,6 +546,7 @@ public class DiscussionPage {
         
     }
     
+    }
 
     // ---------------- Helper Methods ----------------
 
@@ -525,3 +584,5 @@ public class DiscussionPage {
         });
     }
 }
+}
+
