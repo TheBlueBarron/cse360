@@ -21,9 +21,9 @@ public class ReviewerHomePage {
     
     public void show(Stage primaryStage) {
     	
-    	
+    	new DiscussionPage(databaseHelper, "reviewer").show(primaryStage);
 
-    	
+    	/*
     	VBox layout = new VBox();
 	    layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
 	    
@@ -52,6 +52,7 @@ public class ReviewerHomePage {
 	    // Set the scene to primary stage
 	    primaryStage.setScene(userScene);
 	    primaryStage.setTitle("Reviewer Page");
+	    */
 	    
 	    }
     	
