@@ -47,13 +47,8 @@ public class StudentHomePage {
         logoutButton.setOnAction(event -> {
         	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
         });
-        
-        Button discussionButton = new Button("Discussion Forum");
-        discussionButton.setOnAction(event -> {
-        	new DiscussionPage(databaseHelper).show(primaryStage);
-        });
 
-	    layout.getChildren().addAll(userLabel, spacerLabel, logoutButton, discussionButton);
+	    layout.getChildren().addAll(userLabel, spacerLabel, logoutButton);
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage
