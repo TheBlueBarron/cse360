@@ -20,21 +20,18 @@ public class ReviewerHomePage {
     }
     
     public void show(Stage primaryStage) {
-    	
-    	
-
-    	
     	VBox layout = new VBox();
 	    layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
 	    
 	    // Label to display Hello reviewer
-	    
-	    		
-	    	    Label userLabel = new Label("Hello, Reviewer!"); 
-	    
-	    	
-	    
+	    Label userLabel = new Label("Hello, Reviewer!"); 
 	    userLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+	    
+	    // Button to view private messages
+	    Button pmButton = new Button("View private messages");
+	    
+	    // Button to go to discussion page
+	    Button discussionPageButton = new Button("Discussion Board");
 	    
 	    // Logout button
 	    Button logoutButton = new Button("LOGOUT");
@@ -45,14 +42,16 @@ public class ReviewerHomePage {
         logoutButton.setOnAction(event -> {
         	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
         });
+        
+        discussionPageButton.setOnAction(event -> {
+        	new DiscussionPage(databaseHelper).show(primaryStage);
+        });
 
-	    layout.getChildren().addAll(userLabel, spacerLabel, logoutButton); 
+	    layout.getChildren().addAll(userLabel, pmButton, discussionPageButton, spacerLabel, logoutButton); 
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage
 	    primaryStage.setScene(userScene);
 	    primaryStage.setTitle("Reviewer Page");
-	    
 	    }
-    	
-    }
+}

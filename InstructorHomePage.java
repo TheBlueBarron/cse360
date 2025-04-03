@@ -28,16 +28,24 @@ public class InstructorHomePage {
 	    Label userLabel = new Label("Hello, Instructor!");
 	    userLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 	    
+	    // Button to see role requests page
+	    Button roleRequestPageButton = new Button("See Role Requests");
+	    
 	    Button logoutButton = new Button("LOGOUT");
 	 	       
 	    Label spacerLabel = new Label("\n\n\n");
 	    spacerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-	            
+	    
+	    // ---------- Button Handlers ---------- //
 	    logoutButton.setOnAction(event -> {
 	    	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
 	    });	
-
-	    layout.getChildren().addAll(userLabel, spacerLabel, logoutButton); 
+	    
+	    roleRequestPageButton.setOnAction(event -> {
+	    	new RoleRequestPage(databaseHelper).show(primaryStage);
+	    });
+	    
+	    layout.getChildren().addAll(userLabel, roleRequestPageButton, spacerLabel, logoutButton); 
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage

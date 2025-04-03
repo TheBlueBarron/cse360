@@ -3,6 +3,7 @@ package databasePart1;
 import application.User; 
 import application.Question; 
 import application.Answer; 
+import application.Review;
 import java.sql.*; 
 import java.util.ArrayList; 
 import java.util.List; 
@@ -13,7 +14,9 @@ import java.util.UUID;
  * performing operations such as user registration, login validation, and handling invitation codes.
  */
 public class DatabaseHelper {
-
+	
+	public static User cur_user;
+	
 	// JDBC driver name and database URL 
 	static final String JDBC_DRIVER = "org.h2.Driver";   
 	static final String DB_URL = "jdbc:h2:~/FoundationDatabase";  
@@ -46,7 +49,7 @@ public class DatabaseHelper {
 				+ "id INT AUTO_INCREMENT PRIMARY KEY, "
 				+ "userName VARCHAR(255) UNIQUE, "
 				+ "password VARCHAR(255), "
-				+ "role VARCHAR(20))";
+				+ "role VARCHAR(100))";
 		statement.execute(userTable);
 		
 		// Create the invitation codes table
@@ -55,8 +58,7 @@ public class DatabaseHelper {
 	            + "isUsed BOOLEAN DEFAULT FALSE)";
 	    statement.execute(invitationCodesTable);
 	    
-	    // New for HW2 (Questions and Answers table)
-	    //Questions table
+	    // Questions table
 	    String questionsTable = "CREATE TABLE IF NOT EXISTS Questions ("
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
 	            + "text VARCHAR(1024), "
@@ -64,7 +66,7 @@ public class DatabaseHelper {
 	            + "isResolved BOOLEAN)"; 
 	    statement.execute(questionsTable);
 	    
-	    //Answers table
+	    // Answers table
 	    String answersTable = "CREATE TABLE IF NOT EXISTS Answers ("
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
 	            + "question_id INT, "
@@ -73,6 +75,21 @@ public class DatabaseHelper {
 	            + "resolved BOOLEAN, " 
 	            + "FOREIGN KEY (question_id) REFERENCES Questions(id) ON DELETE CASCADE)";
 	    statement.execute(answersTable);
+	    
+	    // Reviews table
+	    String reviewsTable = "CREATE TABLE IF NOT EXISTS Reviews ("
+	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
+	            + "answer_id INT, "
+	            + "text VARCHAR(1024), "
+	            + "author VARCHAR(255))";
+	    statement.execute(reviewsTable);
+	    
+	    // Requests table
+	    String requestsTable = "CREATE TABLE IF NOT EXISTS Requests ("
+	    		+ "id INT AUTO_INCREMENT PRIMARY KEY, "
+	    		+ "userName VARCHAR(255) UNIQUE, "
+	    		+ "request VARCHAR(20))";
+	    statement.execute(requestsTable);
 	}
 
 
@@ -94,6 +111,7 @@ public class DatabaseHelper {
 			pstmt.setString(2, user.getPassword());
 			pstmt.setString(3, user.getRole());
 			pstmt.executeUpdate();
+			cur_user = user;
 		}
 	}
 
@@ -104,6 +122,7 @@ public class DatabaseHelper {
 			pstmt.setString(1, user.getUserName());
 			pstmt.setString(2, user.getPassword());
 			pstmt.setString(3, user.getRole());
+			cur_user = user;
 			try (ResultSet rs = pstmt.executeQuery()) {
 				return rs.next();
 			}
@@ -302,6 +321,25 @@ public class DatabaseHelper {
 	    }
 	    return list;  // return the list of matching questions
 	}
+	
+	// EDIT
+	public List<Question> searchQuestionsByAuthor(String author) throws SQLException {
+	    List<Question> list = new ArrayList<>();
+	    String query = "SELECT * FROM Questions WHERE LOWER(author) LIKE ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setString(1, "%" + author.toLowerCase() + "%");  // prepare keyword for search
+	        ResultSet rs = pstmt.executeQuery();            // execute the search query
+	        while (rs.next()) {
+	            list.add(new Question(
+	                rs.getInt("id"),
+	                rs.getString("text"),
+	                rs.getString("author"),
+	                rs.getBoolean("isResolved")
+	            ));
+	        }
+	    }
+	    return list;  // return the list of matching questions
+	}
 
 	// ---------------- Answer Operations ----------------
 
@@ -420,7 +458,7 @@ public class DatabaseHelper {
 	
 	// Search: Find answers containing a keyword (case-insensitive) **** EDIT
 	// This method looks for answers whose field includes the given keyword.
-	public List<Answer> searchAnswers(String keyword, int id) {
+	public List<Answer> searchAnswers(String keyword, int id) throws SQLException {
 		List<Answer> list = new ArrayList<>();
 		String query = "SELECT * FROM Answers WHERE question_id = ? AND (LOWER(text) LIKE ? OR LOWER(author) LIKE ?)";
 		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -438,15 +476,32 @@ public class DatabaseHelper {
 		            ));
 			}
 			return list;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
+		} 
+	}
+	
+	// EDIT
+	public List<Answer> searchAnswersByAuthor(String author) throws SQLException {
+		List<Answer> list = new ArrayList<>();
+		String query = "SELECT * FROM Answers WHERE LOWER(author) LIKE ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setString(1, author);
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				list.add(new Answer(
+		                rs.getInt("id"),
+		                rs.getInt("question_id"),
+		                rs.getString("text"),
+		                rs.getString("author"),
+		                rs.getBoolean("resolved")
+		            ));
+			}
+			return list;
 		}
 	}
 
-	// ----------------- Other User Opeations -------------------
+	// ----------------- Other User Operations -------------------
 	
-	// Set a one-time password for a user // Radwan edit begins!!------------------------------------------
+	// Set a one-time password for a user
     public boolean setOneTimePassword(String userName, String oneTimePassword) {
         String updatePassword = "UPDATE cse360users SET password = ? WHERE userName = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(updatePassword)) {
@@ -502,9 +557,8 @@ public class DatabaseHelper {
             e.printStackTrace();
             return false;
         }
-    } // Radwan edit ends!! ------------------------------------------------------------------
-    
-    // Jaari edit ----------------------------------------------------------------------------
+    }
+
     // Adds a role to a user to allow multiple options.
     public boolean addUserRole(String userName, String addedRole) {
     	String addRole = "UPDATE cse360users SET role = ? WHERE userName = ?";
@@ -579,10 +633,244 @@ public class DatabaseHelper {
     	}
     }
     
-    // end of Jaari edit ----------------------------------------------------------------
+	// ---------------- Review Operations ----------------
+	
+	// 
+	/**
+	 * This method adds a review object to the database
+	 *
+	 * @param review A Review object created by input to add to database
+	 * @return A list of all review objects
+	 * @throws SQLException If a database access error occurs.
+	 */
+	public void addReview(Review review) throws SQLException {
+	    String insertReview = "INSERT INTO Reviews (answer_id, text, author) VALUES (?, ?, ?)";
+	    try (PreparedStatement pstmt = connection.prepareStatement(insertReview, Statement.RETURN_GENERATED_KEYS)) {
+	        pstmt.setInt(1, review.getAnswerId());      // set the ID of the question this answer belongs to
+	        pstmt.setString(2, review.getText());           // set the review text
+	        pstmt.setString(3, review.getAuthor());         // set the review author
+	        pstmt.executeUpdate();                          // execute the insert
+	        ResultSet rs = pstmt.getGeneratedKeys();        // get the generated ID
+	        if (rs.next()) {
+	            review.setId(rs.getInt(1));                 // update the answer with its new ID
+	        }
+	    }
+	}
+	
+	// 
+	// Read: Get all reviews
+	// 
+	/**
+	 * This method fetches a review from the database based on its ID.
+	 *
+	 * @param id Id used to find specified review
+	 * @return A Review object of found review
+	 * @throws SQLException If a database access error occurs.
+	 */
+	public Review getReviewById(int id) throws SQLException {
+	    String query = "SELECT * FROM Reviews WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setInt(1, id);                            // set the ID to search for
+	        ResultSet rs = pstmt.executeQuery();            // execute the query
+	        if (rs.next()) {
+	            return new Review(
+	                rs.getInt("id"), // gets review id
+	                rs.getString("text"), // gets review text
+	                rs.getString("author") // gets review author
+	            );
+	        }
+	    }
+	    return null;  // return null if no question is found
+	}
+	
+	// Read: Get all reviews
+	// 
+	/**
+	 * This method retrieves all reviews from the database and returns them as a list.
+	 *
+	 * 
+	 * @return A list of all review objects
+	 * @throws SQLException If a database access error occurs.
+	 */
+	public List<Review> getAllReviews() throws SQLException {
+	    List<Review> list = new ArrayList<>();
+	    String query = "SELECT * FROM Reviews";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        ResultSet rs = pstmt.executeQuery();           // execute the query to get all reviews
+	        while (rs.next()) {
+	            list.add(new Review(
+	                rs.getInt("id"), // gets review id
+	                rs.getInt("answer_id"), // gets answer_id
+	                rs.getString("text"), // gets review text
+	                rs.getString("author") // gets review author
+	            ));
+	        }
+	    }
+	    return list;  // return the list of reviews
+	}
+	
+	// Update: Update a review's text
+	//
+	/**
+	 *This method updates the text of an review if the new text is valid.
+	 *
+	 * @param id The id used to query the review to update
+	 * @param newText A string of text to replace review text with
+	 * @return A boolean for whether update was successful or not
+	 * @throws SQLException If a database access error occurs.
+	 */
+	public boolean updateReviewText(int id, String newText) throws SQLException {
+	    if (!Review.isValidReviewText(newText)) {
+	        return false;  // new text is invalid, so don't update
+	    }
+	    String updateQuery = "UPDATE Reviews SET text = ? WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(updateQuery)) {
+	        pstmt.setString(1, newText);                  // set the new text
+	        pstmt.setInt(2, id);                          // specify which review to update
+	        return pstmt.executeUpdate() > 0;             // return true if update was successful
+	    }
+	}
+	
+	
+	// Delete: Remove a review
+	
+	// 
+	/**
+	 *	This method deletes a review from the database based on its ID.
+	 *
+	 * @param id The id used to query the review to delete
+	 * @return A boolean for whether delete was successful or not
+	 * @throws SQLException If a database access error occurs.
+	 */
+	public boolean deleteReview(int id) throws SQLException {
+	    String deleteQuery = "DELETE FROM Reviews WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(deleteQuery)) {
+	        pstmt.setInt(1, id);                          // set the review ID to delete
+	        return pstmt.executeUpdate() > 0;             // return true if deletion succeeded
+	    }
+	}
+	
+	// Search: Find reviews containing a keyword (case-insensitive) **** EDIT
+	// 
+	/**
+	 * This method looks for reviews whose field includes the given keyword.
+	 *
+	 * @param keyword The keyword used to find related reviews
+	 * @param id The id of all reviews returned from search
+	 * @return A list of Review objects corresponding to the specified keyword.
+	 * @throws SQLException If a database access error occurs.
+	 */
+	public List<Review> searchReviews(String keyword, int id) {
+		List<Review> list = new ArrayList<>();
+		String query = "SELECT * FROM Reviews WHERE answer_id = ? AND (LOWER(text) LIKE ? OR LOWER(author) LIKE ?)";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setInt(1, id);
+			pstmt.setString(2, "%" + keyword.toLowerCase() + "%");
+			pstmt.setString(3, "%" + keyword.toLowerCase() + "%");
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				list.add(new Review(
+		                rs.getInt("id"),
+		                rs.getInt("answer_id"),
+		                rs.getString("text"),
+		                rs.getString("author")
+		            ));
+			}
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 
-
-
+	/**
+	 * This method returns all reviews linked to a particular answer ID.
+	 *
+	 * @param answerID The ID of the answer for which reviews are to be fetched.
+	 * @return A list of {@code Review} objects corresponding to the specified answer ID.
+	 * @throws SQLException If a database access error occurs.
+	 */
+	public List<Review> getReviewsForAnswers(int answerID) throws SQLException {
+	    List<Review> list = new ArrayList<>();
+	    String query = "SELECT * FROM Reviews WHERE answer_id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setInt(1, answerID);                  // set the answer ID to filter answers
+	        ResultSet rs = pstmt.executeQuery();           // execute the query
+	        while (rs.next()) {
+	            list.add(new Review(
+	                rs.getInt("id"),
+	                rs.getInt("answer_id"),
+	                rs.getString("text"),
+	                rs.getString("author")
+	            ));
+	        }
+	    }
+	    return list;  // return the list of answers for the question
+	}
+    
+    // ---------- Role Request Operations ---------- EDIT
+    public List<String> getAllRequests() throws SQLException {
+    	String query = "SELECT username FROM Requests";
+    	PreparedStatement pstmt = connection.prepareStatement(query);
+    	ResultSet rs = pstmt.executeQuery();
+    	List<String> list = new ArrayList<>();
+    	
+    	while (rs.next()) {
+    		list.add(rs.getString("username"));
+    	}
+    	return list;
+    }
+    
+    
+    public String getRoleRequest(String userName) {
+    	String query = "SELECT request FROM Requests WHERE username = ?";
+    	try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+    		pstmt.setString(1, userName);
+    		ResultSet rs = pstmt.executeQuery();
+    		
+    		if (rs.next()) {
+    			return rs.getString("request");
+    		}
+    	} catch (SQLException e) {
+    		e.printStackTrace();
+    	}
+    	return null; // If no such request exists or an error occurs
+    }
+    
+    public boolean addRoleRequest(String userName, String requestedRole) {
+    	String requestRole = "INSERT INTO Requests (username, request) VALUES (?, ?)";
+    	try (PreparedStatement pstmt = connection.prepareStatement(requestRole)) {
+    		String existingRequest = getRoleRequest(userName);
+    		
+    		if (existingRequest == null || existingRequest.isEmpty()) {
+    			pstmt.setString(1, userName);
+        		pstmt.setString(2, requestedRole);
+        		return pstmt.executeUpdate() > 0;
+    		}
+    	} catch (SQLException e) {
+    		e.printStackTrace();
+    	}
+    	return false;
+    }
+    
+    public boolean deleteRoleRequest(String userName) {
+    	String deleteRole = "DELETE FROM Requests WHERE username = ?";
+    	try (PreparedStatement pstmt = connection.prepareStatement(deleteRole)) {
+    		String existingRequest = getRoleRequest(userName);
+    		
+    		if (!(existingRequest == null) && !existingRequest.isEmpty()) {
+    			pstmt.setString(1, userName);
+    			return pstmt.executeUpdate() > 0;
+    		}
+    	} catch (SQLException e) {
+    		e.printStackTrace();
+    	}
+    	return false;
+    }
+    
+    // -------------------------------------------------- // EDIT END
+    
 	// Closes the database connection and statement.
 	public void closeConnection() {
 		try{ 

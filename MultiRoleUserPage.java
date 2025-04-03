@@ -55,6 +55,7 @@ public class MultiRoleUserPage {
             String role = roleComboBox.getValue();
             if (role != null) {
             	// Cascading ifs to determine where to direct the user based on their selection
+            	DatabaseHelper.cur_user.setRole(role);
             	if(role.equals("admin")) {
     	    		new AdminHomePage(databaseHelper).show(primaryStage);
     	    	}
