@@ -19,6 +19,14 @@ import javafx.stage.Stage;
 import java.sql.SQLException;
 import java.util.List;
 
+/******
+ * <p> Title: Role Request Page. </p>
+ * 
+ * <p> Description: Java class to display the Role Request page and the associated operations. </p>
+ * 
+ * @author Wednesday 44 of CSE 360
+ * 
+*/
 public class RoleRequestPage {
 	
 	// DatabaseHelper object to perform database operations
@@ -33,10 +41,22 @@ public class RoleRequestPage {
     private ObservableList<Answer> answersList;
     private ListView<Answer> answersListView;
     
+    /******
+     * Constructor for the RoleRequestPage to be called based on
+     * user interaction with the application.
+     * 
+     * @param databaseHelper	DatabaseHelper object to handle database operations.
+     * 
+    */
 	public RoleRequestPage(DatabaseHelper databaseHelper) {
 		this.databaseHelper = databaseHelper;
 	}
 	
+	/******
+	 * Operation to display an existing RoleRequestPage.
+	 * 
+	 * @param primaryStage	Stage object to display the scene on.	
+	 */
 	public void show(Stage primaryStage) {
 		primaryStage.setTitle("Role Requests");
 		
@@ -177,6 +197,11 @@ public class RoleRequestPage {
 	}
 	
 	// ---------- Helper Methods ----------
+	
+	/******
+	 * Operation to load the list of users currently requesting
+	 * a role from the database.
+	 */
 	private void loadUsers() {
 		try {
 			List<String> uList = databaseHelper.getAllRequests();
@@ -189,6 +214,12 @@ public class RoleRequestPage {
 		
 	}
 	
+	/******
+	 * Operation to load the list of questions a particular user
+	 * has asked from the database and display in the ListView.
+	 * 
+	 * @param username	String of the username to use to retrieve corresponding questions.
+	 */
     private void loadQuestions(String username) {
         try {
             List<Question> qList = databaseHelper.searchQuestionsByAuthor(username);
@@ -200,7 +231,13 @@ public class RoleRequestPage {
         }
     }
 
-    // Loads all answers for a specific question into the ListView.
+    /******
+     * Operation to load the list of answers a particular question
+     * has contributed to the discussion board from the database
+     * and display in the ListView.
+     * 
+     * @param username	String of the username to use to retrieve corresponding answers.
+     */
     private void loadAnswers(String username) {
         try {
             List<Answer> aList = databaseHelper.searchAnswersByAuthor(username);
@@ -212,6 +249,12 @@ public class RoleRequestPage {
         }
     }
 	
+    /******
+     * Displays an alert to the UI.
+     * 
+     * @param title		String of the title to display with the alert.
+     * @param message	String of the message to display with the alert.
+     */
 	private void showAlert(String title, String message) {
     	Platform.runLater(() -> {
     		Alert prompt = new Alert(Alert.AlertType.INFORMATION);

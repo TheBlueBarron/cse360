@@ -8,17 +8,31 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
- * This page displays a simple welcome message for the reviewer.
+ * <p> Title: Reviewer Home Page. </p>
+ * 
+ * <p> Description: This page displays a welcome message and all the associated operations a Reviewer can perform. </p>
+ * 
+ * @author Wednesday 44 of CSE 360
  */
 
 public class ReviewerHomePage {
 	
-	private final DatabaseHelper databaseHelper; //Added databasehelper for use in the future
+	private final DatabaseHelper databaseHelper;
 	
+	/**
+	 * Constructor of a new ReviewerHomePage.
+	 * 
+	 * @param databaseHelper	DatabaseHelper object to handle database operations.
+	 */
     public ReviewerHomePage(DatabaseHelper databaseHelper) {
         this.databaseHelper = databaseHelper;  
     }
     
+    /**
+     * Shows the ReviewerHomePage.
+     * 
+     * @param primaryStage	Stage object to display the scene on.
+     */
     public void show(Stage primaryStage) {
     	VBox layout = new VBox();
 	    layout.setStyle("-fx-alignment: center; -fx-padding: 20;");

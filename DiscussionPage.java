@@ -23,7 +23,13 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-// This class creates a Discussion Forum page where anyone can view and post questions and answers.
+/******
+ *  <p> Title: Discussion Page. </p>
+ * 
+ *  <p> Description: This class creates a Discussion Forum page where anyone can view and post questions and answers. </p>
+ *  
+ *  @author Wednesday 44 of CSE 360
+ */
 public class DiscussionPage {
     
     // Database helper to handle DB operations
@@ -38,13 +44,20 @@ public class DiscussionPage {
     private ObservableList<Question> questionsResults;
     private ObservableList<Answer> answersResults;
 
-    
-    // Constructor that takes the DatabaseHelper as a parameter
+    /*****
+     * Constructor to create a new DiscussionPage.
+     * 
+     * @param dbHelper	DatabaseHelper object to handle database operations.
+     */
     public DiscussionPage(DatabaseHelper dbHelper) {
         this.dbHelper = dbHelper;
     }
     
-    // This method sets up and shows the discussion forum page on the given stage.
+    /******
+     * This method sets up and shows the discussion forum page on the given stage.
+     * 
+     * @param primaryStage	Stage object to display the scene on.
+     */
     public void show(Stage primaryStage) {
     	String username = DatabaseHelper.cur_user.getUserName();
         primaryStage.setTitle(username);
@@ -490,7 +503,9 @@ public class DiscussionPage {
 
     // ---------------- Helper Methods ----------------
 
-    // Loads all questions from the database into the ListView.
+    /******
+     * Loads all questions from the database into the ListView.
+     */
     private void loadQuestions() {
         try {
             List<Question> qList = dbHelper.getAllQuestions();
@@ -502,7 +517,11 @@ public class DiscussionPage {
         }
     }
 
-    // Loads all answers for a specific question into the ListView.
+    /******
+     * Loads all answers for a specific question into the ListView.
+     * 
+     * @param questionId Integer of ID of question to retrieve answers of.
+     */
     private void loadAnswers(int questionId) {
         try {
             List<Answer> aList = dbHelper.getAnswersForQuestion(questionId);
@@ -514,7 +533,12 @@ public class DiscussionPage {
         }
     }
 
-    // Shows an alert with the given title and message on the UI.
+    /******
+     * Displays an alert to the UI.
+     * 
+     * @param title		String of the title to display with the alert.
+     * @param message	String of the message to display with the alert.
+     */
     private void showAlert(String title, String message) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);

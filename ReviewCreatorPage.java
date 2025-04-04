@@ -25,19 +25,37 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import application.Review;
 
+/**
+ * <p> Title: Reviewer Creator Page. </p>
+ * 
+ * <p> Description: This page allows a Reviewer to create reviews of an answer on the Discussion board. </p>
+ * 
+ * @author Wednesday 44 of CSE 360
+ */
 @SuppressWarnings("unused")
 public class ReviewCreatorPage {
-	private final DatabaseHelper dbHelper; //Added databasehelper for use in the future
+	private final DatabaseHelper dbHelper;
 	
     private ObservableList<Review> reviewsList;
     private ListView<Review> reviewsListView;
 	private int ans_id;
-
+	
+	/**
+	 * Constructor of a new ReviewCreatorPage.
+	 * 
+	 * @param dbHelper	DatabaseHelper object to handle database operations.
+	 * @param ans_id	ID of the answer to create a review for.
+	 */
     public ReviewCreatorPage(DatabaseHelper dbHelper, int ans_id) {
        this.dbHelper = dbHelper;
        this.ans_id = ans_id;
     }
 
+    /**
+     * Shows the ReviewCreatorPage.
+     * 
+     * @param primaryStage	Stage object to display the scene on.
+     */
     public void show(Stage primaryStage) {
     	VBox layout = new VBox(10);
 	    layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
@@ -191,8 +209,11 @@ public class ReviewCreatorPage {
     }
     
     
-    // Obtains current list of reviews for given answer_id
-    
+    /**
+     * Obtains current list of reviews for given answer ID.
+     * 
+     * @param answer_id		Integer to find the answer to retrieve the reviews of.
+     */
     private void loadReviews(int answer_id) {
         try {
             List<Review> rList = dbHelper.getReviewsForAnswers(answer_id);
@@ -203,6 +224,13 @@ public class ReviewCreatorPage {
             showAlert("Error", "Failed to load answers: " + ex.getMessage());
         }
     }
+    
+    /******
+     * Displays an alert to the UI.
+     * 
+     * @param title		String of the title to display with the alert.
+     * @param message	String of the message to display with the alert.
+     */
     private void showAlert(String title, String message) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);

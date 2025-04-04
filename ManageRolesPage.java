@@ -29,18 +29,15 @@ public class ManageRolesPage {
         roleComboBox.getItems().addAll("user", "admin", "student", "instructor", "reviewer", "staff");
         roleComboBox.setPromptText("Select role");
         
-        // Jaari edit begins ------------------------------
         // ComboBox to select action to take with role
         ComboBox<String> actionComboBox = new ComboBox<>();
         actionComboBox.getItems().addAll("add", "replace", "remove");
         actionComboBox.setPromptText("Select action");
-        // end of edit ------------------------------------
         
         // Button to apply the role change
         Button changeRoleButton = new Button("Change Role");
         changeRoleButton.setOnAction(a -> {
             String username = usernameField.getText();
-            // Jaari edit begins -----------------------------------------------------
             String role = roleComboBox.getValue();
             String action = actionComboBox.getValue();
 	        // Calls the corresponding function based on which action is selected
@@ -77,7 +74,6 @@ public class ManageRolesPage {
 	                errorAlert.showAndWait();
 	        	}
 	        }
-	        // end of edit ------------------------------------------------------------	
         });
 
         Button showBackButton = new Button("Back"); ;

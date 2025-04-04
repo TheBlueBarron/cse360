@@ -9,23 +9,37 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 /**
- * Class written by Jaari Moreno for
- * Wednesday 44 group of CSE360
+ * <p> Title: Multi-role User Page </p>
  *
- * This page allows the user to select which role they would like to enter.
- * If the user does not have multiple roles, they will be directed elsewhere.
+ * <p> Description: 
+ * 		This page allows the user to select which role they would like to enter.
+ * 		If the user does not have multiple roles, they will be directed elsewhere.
  * 
- * This should also replace the welcome page that shows by default for users
- * with only one role.
+ * 		This should also replace the welcome page that shows by default for users
+ * 		with only one role.
+ * </p>
+ *
+ * @author Wednesday 44 of CSE 360
  */
 public class MultiRoleUserPage {
 	
 	private final DatabaseHelper databaseHelper;
-
+	
+	/**
+	 * Constructor of a new MultiRoleUserPage.
+	 * 
+	 * @param databaseHelper	DatabaseHelper object to handle database operations.
+	 */
     public MultiRoleUserPage(DatabaseHelper databaseHelper) {
         this.databaseHelper = databaseHelper;
     }
 	
+    /**
+     * Shows the MultiRoleUserPage.
+     * 
+     * @param primaryStage	Stage object to display the scene on.
+     * @param user			User object to retrieve the roles of.
+     */
 	public void show(Stage primaryStage, User user) {
         VBox layout = new VBox(10);
         layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
@@ -54,8 +68,9 @@ public class MultiRoleUserPage {
         selectButton.setOnAction(a -> {
             String role = roleComboBox.getValue();
             if (role != null) {
-            	// Cascading ifs to determine where to direct the user based on their selection
+            	// Set current user's role to selected role for use in other operations
             	DatabaseHelper.cur_user.setRole(role);
+            	// Cascading ifs to determine where to direct the user based on their selection
             	if(role.equals("admin")) {
     	    		new AdminHomePage(databaseHelper).show(primaryStage);
     	    	}

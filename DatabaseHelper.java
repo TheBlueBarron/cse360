@@ -10,8 +10,16 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The DatabaseHelper class is responsible for managing the connection to the database,
- * performing operations such as user registration, login validation, and handling invitation codes.
+ * <p> Title: Database Helper </p>
+ * 
+ * <p> Description:
+ * 		The DatabaseHelper class is responsible for managing the connection to the database,
+ * 		performing various operations for the application. These include handling all user
+ * 		information and associated operations (such as logging in, invitation code requests,
+ * 		role operations, etc.), and discussion board information and associated operations 
+ * 		(such as storing questions, answers, etc.). </p>
+ * 
+ * @author Wednesday 44 of CSE 360
  */
 public class DatabaseHelper {
 	
@@ -28,7 +36,12 @@ public class DatabaseHelper {
 	private Connection connection = null;
 	private Statement statement = null; 
 	//	PreparedStatement pstmt
-
+	
+	/**
+	 * This method connects to the database for access to tables and operations.
+	 * 
+	 * @throws SQLException	upon failure to find JDBC driver
+	 */
 	public void connectToDatabase() throws SQLException {
 		try {
 			Class.forName(JDBC_DRIVER); // Load the JDBC driver
@@ -43,7 +56,12 @@ public class DatabaseHelper {
 			System.err.println("JDBC Driver not found: " + e.getMessage());
 		}
 	}
-
+	
+	/**
+	 * This method creates all needed tables used for storage in the database.
+	 * 
+	 * @throws SQLException upon failure to create at least one table
+	 */
 	private void createTables() throws SQLException {
 		String userTable = "CREATE TABLE IF NOT EXISTS cse360users ("
 				+ "id INT AUTO_INCREMENT PRIMARY KEY, "
@@ -93,7 +111,12 @@ public class DatabaseHelper {
 	}
 
 
-	// Check if the database is empty
+	/**
+	 * This method checks if the database is empty by checking if the count is zero.
+	 * 
+	 * @return Returns true if database is empty.
+	 * @throws SQLException
+	 */
 	public boolean isDatabaseEmpty() throws SQLException {
 		String query = "SELECT COUNT(*) AS count FROM cse360users";
 		ResultSet resultSet = statement.executeQuery(query);
@@ -103,7 +126,12 @@ public class DatabaseHelper {
 		return true;
 	}
 
-	// Registers a new user in the database.
+	/**
+	 * This method registers a new user in the database by adding their information to the Users table.
+	 * 
+	 * @param user				User object to get information of and register into database.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public void register(User user) throws SQLException {
 		String insertUser = "INSERT INTO cse360users (userName, password, role) VALUES (?, ?, ?)";
 		try (PreparedStatement pstmt = connection.prepareStatement(insertUser)) {
@@ -111,17 +139,26 @@ public class DatabaseHelper {
 			pstmt.setString(2, user.getPassword());
 			pstmt.setString(3, user.getRole());
 			pstmt.executeUpdate();
+			// Set current user to given user
 			cur_user = user;
 		}
 	}
 
-	// Validates a user's login credentials.
+	/**
+	 * This method validates a user's login credentials by checking 
+	 * if their information exists in the Users table.
+	 * 
+	 * @param user				User object to get information of and check against database.
+	 * @return 					Returns true if login of given user was successful.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public boolean login(User user) throws SQLException {
 		String query = "SELECT * FROM cse360users WHERE userName = ? AND password = ? AND role = ?";
 		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
 			pstmt.setString(1, user.getUserName());
 			pstmt.setString(2, user.getPassword());
 			pstmt.setString(3, user.getRole());
+			// Set current user to given user.
 			cur_user = user;
 			try (ResultSet rs = pstmt.executeQuery()) {
 				return rs.next();
@@ -129,7 +166,12 @@ public class DatabaseHelper {
 		}
 	}
 	
-	// Checks if a user already exists in the database based on their userName.
+	/**
+	 * This method checks if a user already exists in the database based on their userName.
+	 * 
+	 * @param userName		String to check against database.
+	 * @return				Returns true if userName is found in database.
+	 */
 	public boolean doesUserExist(String userName) {
 	    String query = "SELECT COUNT(*) FROM cse360users WHERE userName = ?";
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -147,7 +189,12 @@ public class DatabaseHelper {
 	    return false; // If an error occurs, assume user doesn't exist
 	}
 	
-	// Retrieves the role of a user from the database using their UserName.
+	/**
+	 * This method retrieves the role of a user from the database using their userName.
+	 * 
+	 * @param userName		String to check against database.
+	 * @return				Returns a String containing the user's role.
+	 */
 	public String getUserRole(String userName) {
 	    String query = "SELECT role FROM cse360users WHERE userName = ?";
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -163,7 +210,11 @@ public class DatabaseHelper {
 	    return null; // If no user exists or an error occurs
 	}
 	
-	// Generates a new invitation code and inserts it into the database.
+	/**
+	 * This method generates a new invitation code and inserts it into the database.
+	 * 
+	 * @return		Returns String of the generated code.
+	 */
 	public String generateInvitationCode() {
 	    String code = UUID.randomUUID().toString().substring(0, 4); // Generate a random 4-character code
 	    String query = "INSERT INTO InvitationCodes (code) VALUES (?)";
@@ -178,7 +229,12 @@ public class DatabaseHelper {
 	    return code;
 	}
 	
-	// Validates an invitation code to check if it is unused.
+	/**
+	 * This method validates an invitation code by checking if it is exists and is unused.
+	 * 
+	 * @param code			Code to check against database.
+	 * @return				Returns true if code is unused.
+	 */
 	public boolean validateInvitationCode(String code) {
 	    String query = "SELECT * FROM InvitationCodes WHERE code = ? AND isUsed = FALSE";
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -195,7 +251,11 @@ public class DatabaseHelper {
 	    return false;
 	}
 	
-	// Marks the invitation code as used in the database.
+	/**
+	 * This method marks the invitation code as used in the database.
+	 * 
+	 * @param code			Code to mark as used.
+	 */
 	private void markInvitationCodeAsUsed(String code) {
 	    String query = "UPDATE InvitationCodes SET isUsed = TRUE WHERE code = ?";
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -208,10 +268,14 @@ public class DatabaseHelper {
 	
 	// ---------------- Question Operations ----------------
 
-	// Create: Add a new question
-	// This method inserts a new question into the database.
-	// It uses a prepared statement to set the question's text and author,
-	// then it retrieves the auto-generated ID and updates the question object.
+	/**
+	 * This method inserts a new question into the database.
+	 * It uses a prepared statement to set the question's text and author,
+	 * then it retrieves the auto-generated ID and updates the question object.
+	 * 
+	 * @param question			{@code Question} object to get information of and insert into database.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public void addQuestion(Question question) throws SQLException {
 	    String insertQuestion = "INSERT INTO Questions (text, author, isResolved) VALUES (?, ?, ?)";
 	    try (PreparedStatement pstmt = connection.prepareStatement(insertQuestion, Statement.RETURN_GENERATED_KEYS)) {
@@ -226,8 +290,13 @@ public class DatabaseHelper {
 	    }
 	}
 
-	// Read: Get a question by its ID
-	// This method fetches a question from the database based on its ID.
+	/**
+	 * This method fetches a question from the database based on its ID.
+	 * 
+	 * @param id				Integer ID to find desired question.
+	 * @return					Returns {@code Question} object constructed with information from database.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public Question getQuestionById(int id) throws SQLException {
 	    String query = "SELECT * FROM Questions WHERE id = ?";
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -244,9 +313,13 @@ public class DatabaseHelper {
 	    }
 	    return null;  // return null if no question is found
 	}
-
-	// Read: Get all questions
-	// This method retrieves all questions from the database and returns them as a list.
+	
+	/**
+	 * This method retrieves all questions from the database and returns them as a list.
+	 * 
+	 * @return					Returns list of {@code Question} constructed with information from database.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public List<Question> getAllQuestions() throws SQLException {
 	    List<Question> list = new ArrayList<>();
 	    String query = "SELECT * FROM Questions";
@@ -265,9 +338,15 @@ public class DatabaseHelper {
 	    return list;  // return the list of questions
 	}
 
-	// Update: Update a question's text
-	// This method updates the text of a question identified by its ID,
-	// but only if the new text is valid.
+	/**
+	 * This method updates the text of a question identified by its ID, 
+	 * but only if the new text is valid (in other words, non-empty).
+	 * 
+	 * @param id				Integer ID to find question to edit.
+	 * @param newText			String containing edit to perform.
+	 * @return					Returns true if the edit was valid and applied in database.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public boolean updateQuestionText(int id, String newText) throws SQLException {
 	    if (!Question.isValidQuestionText(newText)) {
 	        return false;  // new text is invalid, so we don't update
@@ -280,7 +359,14 @@ public class DatabaseHelper {
 	    }
 	}
 	
-	//This method updates the questions resolved flag
+	/** 
+	 * This method updates a question's resolved flag by taking 
+	 * an ID and the Boolean value to change the flag to.
+	 * 
+	 * @param id				Integer ID of question to change flag of.
+	 * @param isResolved		{@code boolean} value to update flag to.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public void updateIsResolvedQuestion(int id, boolean isResolved) throws SQLException {
 		String updateQuery = "UPDATE Questions SET isResolved = ? WHERE id = ?";
 		try(PreparedStatement pstmt = connection.prepareStatement(updateQuery)) {
@@ -290,8 +376,13 @@ public class DatabaseHelper {
 		}
 	}
 
-	// Delete: Remove a question
-	// This method deletes a question from the database using its ID.
+	/**
+	 * This method deletes a question from the database after searching for it using an ID.
+	 * 
+	 * @param id				Integer ID to find question to delete from table.
+	 * @return					Returns true if question could be deleted.
+	 * @throws SQLException		upon failure to access database.
+	 */
 	public boolean deleteQuestion(int id) throws SQLException {
 	    String deleteQuery = "DELETE FROM Questions WHERE id = ?";
 	    try (PreparedStatement pstmt = connection.prepareStatement(deleteQuery)) {
@@ -300,9 +391,14 @@ public class DatabaseHelper {
 	    }
 	}
 
-	// Search: Find questions containing a keyword (case-insensitive)
-	// This method looks for questions whose text OR author field includes the given keyword.
-	// **** EDIT: updated to search author field as well
+	/** 
+	 * This method looks for questions whose text OR author 
+	 * field includes the given keyword (case-insensitive).
+	 * 
+	 * @param keyword			String of keyword to check against Questions table.
+	 * @return					Returns list of all questions containing the keyword.
+	 * @throws SQLException		upon failure to access database.
+	 */
 	public List<Question> searchQuestions(String keyword) throws SQLException {
 	    List<Question> list = new ArrayList<>();
 	    String query = "SELECT * FROM Questions WHERE LOWER(text) LIKE ? OR LOWER(author) LIKE ?";
@@ -322,7 +418,14 @@ public class DatabaseHelper {
 	    return list;  // return the list of matching questions
 	}
 	
-	// EDIT
+	/**
+	 * This method looks for questions whose author field contains the
+	 * given keyword (case-insensitive). For use in displaying all of a user's contributions.
+	 * 
+	 * @param author			String of keyword to check against the Questions table's author field.
+	 * @return					Returns list of questions whose author contains the given keyword.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public List<Question> searchQuestionsByAuthor(String author) throws SQLException {
 	    List<Question> list = new ArrayList<>();
 	    String query = "SELECT * FROM Questions WHERE LOWER(author) LIKE ?";
@@ -343,9 +446,13 @@ public class DatabaseHelper {
 
 	// ---------------- Answer Operations ----------------
 
-	// Create: Add a new answer
-	// This method inserts a new answer into the Answers table,
-	// then retrieves the auto-generated ID and sets it in the answer object.
+	/** 
+	 * This method inserts a new {@code Answer} into the Answers table, 
+	 * then retrieves the auto-generated ID and sets it in the {@code Answer} object.
+	 * 
+	 * @param answer			{@code Answer} to insert into Answers table.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public void addAnswer(Answer answer) throws SQLException {
 	    String insertAnswer = "INSERT INTO Answers (question_id, text, author, resolved) VALUES (?, ?, ?, ?)";
 	    try (PreparedStatement pstmt = connection.prepareStatement(insertAnswer, Statement.RETURN_GENERATED_KEYS)) {
@@ -361,8 +468,13 @@ public class DatabaseHelper {
 	    }
 	}
 
-	// Read: Get an answer by its ID
-	// This method retrieves a specific answer from the database using its ID.
+	/** 
+	 * This method retrieves a specific answer from the database using its ID.
+	 * 
+	 * @param id				Answer ID to search for in database.
+	 * @return					Returns {@code Answer} constructed using information from database.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public Answer getAnswerById(int id) throws SQLException {
 	    String query = "SELECT * FROM Answers WHERE id = ?";
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -381,8 +493,12 @@ public class DatabaseHelper {
 	    return null;  // return null if no answer is found
 	}
 
-	// Read: Get all answers
-	// This method retrieves all answers from the database and returns them as a list.
+	/** 
+	 * This method retrieves all answers from the database and returns them as a list.
+	 * 
+	 * @return					Returns list of {@code Answer} all answers in the database.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public List<Answer> getAllAnswers() throws SQLException {
 	    List<Answer> list = new ArrayList<>();
 	    String query = "SELECT * FROM Answers";
@@ -401,8 +517,13 @@ public class DatabaseHelper {
 	    return list;  // return the list of answers
 	}
 
-	// Read: Get all answers for a specific question
-	// This method returns all answers linked to a particular question ID.
+	/** 
+	 * This method returns all answers linked to a particular question ID.
+	 * 
+	 * @param questionId			Question ID to search for in database for retrieval of associated answers.
+	 * @return						Returns list of {@code Answer} 
+	 * @throws SQLException			upon failure to access database
+	 */
 	public List<Answer> getAnswersForQuestion(int questionId) throws SQLException {
 	    List<Answer> list = new ArrayList<>();
 	    String query = "SELECT * FROM Answers WHERE question_id = ?";
@@ -422,8 +543,15 @@ public class DatabaseHelper {
 	    return list;  // return the list of answers for the question
 	}
 
-	// Update: Update an answer's text
-	// This method updates the text of an answer if the new text is valid.
+	/** 
+	 * This method updates the text of an answer, found with an
+	 * ID, if the new text is valid (in other words, non-empty).
+	 * 
+	 * @param id					Integer ID to find the answer in the database.
+	 * @param newText				String to change the answer's text to.
+	 * @return						Returns true if the edit was successful.
+	 * @throws SQLException			upon failure to access database
+	 */
 	public boolean updateAnswerText(int id, String newText) throws SQLException {
 	    if (!Answer.isValidAnswerText(newText)) {
 	        return false;  // new text is invalid, so don't update
@@ -436,7 +564,14 @@ public class DatabaseHelper {
 	    }
 	}
 	
-	//This method updates the answers resolved flag
+	/** 
+	 * This method updates an answer's resolved flag in the database after
+	 * searching for it using an ID.
+	 * 
+	 * @param id				Integer ID to search for the answer in the database.
+	 * @param resolved			Boolean to set the resolved flag to.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public void updateAnswerResolved(int id, boolean resolved) throws SQLException {
 		String updateQuery = "UPDATE Answers SET resolved = ? WHERE id = ?";
 		try(PreparedStatement pstmt = connection.prepareStatement(updateQuery)) {
@@ -446,8 +581,13 @@ public class DatabaseHelper {
 		}
 	}
 
-	// Delete: Remove an answer
-	// This method deletes an answer from the database based on its ID.
+	/**
+	 * This method deletes an answer from the database based on its ID.
+	 * 
+	 * @param id				Integer ID to search for the answer in the database.
+	 * @return					Returns true if the answer's deletion was successful.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public boolean deleteAnswer(int id) throws SQLException {
 	    String deleteQuery = "DELETE FROM Answers WHERE id = ?";
 	    try (PreparedStatement pstmt = connection.prepareStatement(deleteQuery)) {
@@ -456,8 +596,14 @@ public class DatabaseHelper {
 	    }
 	}
 	
-	// Search: Find answers containing a keyword (case-insensitive) **** EDIT
-	// This method looks for answers whose field includes the given keyword.
+	/**
+	 * This method looks for answers whose text OR author field includes the given keyword (case-insensitive).
+	 * 
+	 * @param keyword			String of the keyword to search the Answers table for.
+	 * @param id				Integer ID of the question ID to search for answers with.
+	 * @return					Returns a list of all answers containing the keyword.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public List<Answer> searchAnswers(String keyword, int id) throws SQLException {
 		List<Answer> list = new ArrayList<>();
 		String query = "SELECT * FROM Answers WHERE question_id = ? AND (LOWER(text) LIKE ? OR LOWER(author) LIKE ?)";
@@ -479,7 +625,14 @@ public class DatabaseHelper {
 		} 
 	}
 	
-	// EDIT
+	/**
+	 * This method looks for answers whose author field includes the given keyword (case-insensitive).
+	 * For use in displaying all of a user's contributions, not limited to a specific question.
+	 * 
+	 * @param author			String keyword to search author fields for.
+	 * @return					Returns a list of all answers found by the search.
+	 * @throws SQLException		upon failure to access database
+	 */
 	public List<Answer> searchAnswersByAuthor(String author) throws SQLException {
 		List<Answer> list = new ArrayList<>();
 		String query = "SELECT * FROM Answers WHERE LOWER(author) LIKE ?";
@@ -501,7 +654,13 @@ public class DatabaseHelper {
 
 	// ----------------- Other User Operations -------------------
 	
-	// Set a one-time password for a user
+	/** 
+	 * This method sets a one-time password for a user based on the given input.
+	 * 
+	 * @param userName				String username to find whose password to replace.
+	 * @param oneTimePassword		String password to change given user's password to.
+	 * @return						Returns true if update was successful.
+	 */
     public boolean setOneTimePassword(String userName, String oneTimePassword) {
         String updatePassword = "UPDATE cse360users SET password = ? WHERE userName = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(updatePassword)) {
@@ -514,6 +673,12 @@ public class DatabaseHelper {
         }
     }
     
+    /**
+     * This method deletes a user from the database. If the user is admin, they cannot be deleted.
+     * 
+     * @param userName			String username of the user to delete.
+     * @return					Returns true if the deletion was successful.
+     */
     public boolean deleteUser(String userName) {
         String deleteUser = "DELETE FROM cse360users WHERE userName = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(deleteUser)) {
@@ -530,6 +695,12 @@ public class DatabaseHelper {
         }
     }
     
+    /**
+     * This method lists all the users in a database by iterating through the database and
+     * retrieving all pertinent information.
+     * 
+     * @return			Returns a String containing a full, formatted list.
+     */
     public String listUsers() {
         StringBuilder userData = new StringBuilder();
         String listUsers = "SELECT userName, role FROM cse360users";
@@ -546,7 +717,14 @@ public class DatabaseHelper {
         return userData.toString();
     }
     
-    // Modify a user's role
+    /**
+     * This method replaces a user's role completely by searching for 
+     * them and editing their role field.
+     * 
+     * @param userName			String username of the user whose role will be replaced.
+     * @param newRole			String of the role to fill in the role field with.
+     * @return					Returns true if the replacement was successful.
+     */
     public boolean manageUserRole(String userName, String newRole) {
         String updateRole = "UPDATE cse360users SET role = ? WHERE userName = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(updateRole)) {
@@ -559,7 +737,14 @@ public class DatabaseHelper {
         }
     }
 
-    // Adds a role to a user to allow multiple options.
+    /** 
+     * This method adds a role to a user by concatenating it to their existing role with a comma
+     * if they do not already have it, allowing them to have multiple roles at a time. 
+     * 
+     * @param userName			String username of the user whose role will be added to.
+     * @param addedRole			String of the role to add to the user's role field.
+     * @return					Returns true if the update was successful.
+     */
     public boolean addUserRole(String userName, String addedRole) {
     	String addRole = "UPDATE cse360users SET role = ? WHERE userName = ?";
     	try (PreparedStatement pstmt = connection.prepareStatement(addRole)) {
@@ -578,7 +763,17 @@ public class DatabaseHelper {
     		e.printStackTrace();
             return false;
     	}
-    } 
+    }
+    
+    /**
+     * This method deletes a specific role from a user if they have it. If a user has multiple roles, this
+     * function will preserve all other roles. If a user only has one role, the user will be set to a default role.
+     * Admins cannot delete their own admin role.
+     * 
+     * @param userName			String username of the user whose role will be modified.
+     * @param removedRole		String of the role to remove from the user.
+     * @return					Returns true if the update was successful.
+     */
     public boolean removeUserRole(String userName, String removedRole) {
     	String removeRole = "UPDATE cse360users SET role = ? WHERE userName = ?";
     	try (PreparedStatement pstmt = connection.prepareStatement(removeRole)) {
@@ -590,7 +785,7 @@ public class DatabaseHelper {
     		
     		// Checks if the role being removed is their admin role;
     		// if it is, cancel the operation
-    		if (removedRole.equals("admin")) {
+    		if (cur_user.getUserName().equals(userName) && removedRole.equals("admin")) {
     			return false;
     		}
     		
@@ -635,9 +830,8 @@ public class DatabaseHelper {
     
 	// ---------------- Review Operations ----------------
 	
-	// 
 	/**
-	 * This method adds a review object to the database
+	 * This method adds a review object to the database.
 	 *
 	 * @param review A Review object created by input to add to database
 	 * @return A list of all review objects
@@ -657,9 +851,6 @@ public class DatabaseHelper {
 	    }
 	}
 	
-	// 
-	// Read: Get all reviews
-	// 
 	/**
 	 * This method fetches a review from the database based on its ID.
 	 *
@@ -683,8 +874,6 @@ public class DatabaseHelper {
 	    return null;  // return null if no question is found
 	}
 	
-	// Read: Get all reviews
-	// 
 	/**
 	 * This method retrieves all reviews from the database and returns them as a list.
 	 *
@@ -709,8 +898,6 @@ public class DatabaseHelper {
 	    return list;  // return the list of reviews
 	}
 	
-	// Update: Update a review's text
-	//
 	/**
 	 *This method updates the text of an review if the new text is valid.
 	 *
@@ -731,10 +918,6 @@ public class DatabaseHelper {
 	    }
 	}
 	
-	
-	// Delete: Remove a review
-	
-	// 
 	/**
 	 *	This method deletes a review from the database based on its ID.
 	 *
@@ -750,8 +933,6 @@ public class DatabaseHelper {
 	    }
 	}
 	
-	// Search: Find reviews containing a keyword (case-insensitive) **** EDIT
-	// 
 	/**
 	 * This method looks for reviews whose field includes the given keyword.
 	 *
@@ -809,7 +990,14 @@ public class DatabaseHelper {
 	    return list;  // return the list of answers for the question
 	}
     
-    // ---------- Role Request Operations ---------- EDIT
+    // ---------- Role Request Operations ----------
+	
+	/**
+	 * This method returns all the existing role requests in the database.
+	 * 
+	 * @return					Returns a list of all the usernames of users that are requesting a role.
+	 * @throws SQLException		upon failure to access database
+	 */
     public List<String> getAllRequests() throws SQLException {
     	String query = "SELECT username FROM Requests";
     	PreparedStatement pstmt = connection.prepareStatement(query);
@@ -822,7 +1010,13 @@ public class DatabaseHelper {
     	return list;
     }
     
-    
+    /**
+     * This method returns a particular role request by 
+     * searching the database for the given username.
+     * 
+     * @param userName			String of the username to search the database for.
+     * @return					Returns a String of the role the user is requesting.
+     */
     public String getRoleRequest(String userName) {
     	String query = "SELECT request FROM Requests WHERE username = ?";
     	try (PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -838,6 +1032,14 @@ public class DatabaseHelper {
     	return null; // If no such request exists or an error occurs
     }
     
+    /**
+     * This method adds a user's request to the database, taking their username and the
+     * role that they are requesting and inserting it into the Requests table.
+     * 
+     * @param userName			String username of the user making a request.
+     * @param requestedRole		String of the role that the user is requesting.
+     * @return					Returns true if the update was successful.
+     */
     public boolean addRoleRequest(String userName, String requestedRole) {
     	String requestRole = "INSERT INTO Requests (username, request) VALUES (?, ?)";
     	try (PreparedStatement pstmt = connection.prepareStatement(requestRole)) {
@@ -854,6 +1056,13 @@ public class DatabaseHelper {
     	return false;
     }
     
+    /**
+     * This method deletes a role request for the database by searching the database
+     * for the username and deleting the row from the table.
+     * 
+     * @param userName		String username of the user to delete from the table.
+     * @return				Returns true if the update was successful.
+     */
     public boolean deleteRoleRequest(String userName) {
     	String deleteRole = "DELETE FROM Requests WHERE username = ?";
     	try (PreparedStatement pstmt = connection.prepareStatement(deleteRole)) {
@@ -869,9 +1078,11 @@ public class DatabaseHelper {
     	return false;
     }
     
-    // -------------------------------------------------- // EDIT END
+    // --------------------------------------------------
     
-	// Closes the database connection and statement.
+	/**
+	 * Closes the database connection and statement.
+	 */
 	public void closeConnection() {
 		try{ 
 			if(statement!=null) statement.close(); 
