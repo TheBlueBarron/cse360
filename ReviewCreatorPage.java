@@ -25,44 +25,27 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import application.Review;
 
-/**
- * <p> Title: Reviewer Creator Page. </p>
- * 
- * <p> Description: This page allows a Reviewer to create reviews of an answer on the Discussion board. </p>
- * 
- * @author Wednesday 44 of CSE 360
- */
-@SuppressWarnings("unused")
 public class ReviewCreatorPage {
-	private final DatabaseHelper dbHelper;
+	private final DatabaseHelper dbHelper; //Added databasehelper for use in the future
 	
     private ObservableList<Review> reviewsList;
     private ListView<Review> reviewsListView;
 	private int ans_id;
-	
-	/**
-	 * Constructor of a new ReviewCreatorPage.
-	 * 
-	 * @param dbHelper	DatabaseHelper object to handle database operations.
-	 * @param ans_id	ID of the answer to create a review for.
-	 */
+
     public ReviewCreatorPage(DatabaseHelper dbHelper, int ans_id) {
        this.dbHelper = dbHelper;
        this.ans_id = ans_id;
     }
 
-    /**
-     * Shows the ReviewCreatorPage.
-     * 
-     * @param primaryStage	Stage object to display the scene on.
-     */
     public void show(Stage primaryStage) {
-    	VBox layout = new VBox(10);
+    	VBox layout = new VBox();
 	    layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
 	    
 	    // Label to display Hello user
 	    Label userLabel = new Label("Create Reviews HERE!");
 	    userLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+
+	    
 	    
 	    Button addReview = new Button("Add Review");
 	    
@@ -81,12 +64,14 @@ public class ReviewCreatorPage {
         Label newReviewLabel = new Label("Post a New Review:");
         TextField reviewTextField = new TextField();
         reviewTextField.setPromptText("Enter your review here");
-        CheckBox isAnon = new CheckBox("Anonymous");
-        isAnon.setIndeterminate(false);
-        
+
         // HBox to hold the new question input fields and button.
-        HBox newReviewBox = new HBox(10, reviewTextField, isAnon);
+        HBox newReviewBox = new HBox(10, reviewTextField);
         newReviewBox.setPadding(new Insets(5));
+        
+
+  
+        //    public Review(int id, int answerId, String text, String author) {
 
         // Displays all reviews for selected answer
         Label reviewsLabel = new Label("Reviews:");
@@ -97,9 +82,17 @@ public class ReviewCreatorPage {
                 super.updateItem(r, empty);
                 if (empty || r == null) {
                     setText(null);
-                } else {
+                } else { // Have to get reviewer name by ID
+                    int rID = r.getReviewerId();
+                    String author = "Unknown"; // in case getting the author fails
+                    try { 
+    					 author = dbHelper.getReviewerById(rID).getName();
+    				}catch (SQLException e) {
+    					e.printStackTrace();
+    				}
                     // Display question ID, text, and author in the list.
-                    setText("[" + r.getId() + "] " + r.getText() + " (by " + r.getAuthor() + ")");
+                    setText("[" + r.getId() + "] " + r.getText() + " (by " + author + ")");
+
                 }
             }
         });
@@ -110,11 +103,15 @@ public class ReviewCreatorPage {
             // Get the currently selected question to answer.
             String rText = reviewTextField.getText().trim();
             String rAuthor = DatabaseHelper.cur_user.getUserName();
+            int reviewer_id = -1;
+			try {
+				reviewer_id = dbHelper.getReviewerIDByUsername(rAuthor);
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+            
             // Create a new answer for the selected question.
-            if (isAnon.isSelected()) {
-            	rAuthor = "Anonymous";
-            }
-            Review newReview = new Review(ans_id, rText, rAuthor);
+            Review newReview = new Review(ans_id, rText, reviewer_id);
             try {
                 // Add the answer to the database.
                 dbHelper.addReview(newReview);
@@ -133,7 +130,7 @@ public class ReviewCreatorPage {
         editReviewButton.setOnAction(e -> {
             Review selectedReview = reviewsListView.getSelectionModel().getSelectedItem();
             if (selectedReview == null) {
-                showAlert("Error", "Please select a review to edit.");
+                showAlert("Error", "Please select an answer to edit.");
                 return;
             }
             // Open a dialog with the current review text for editing.
@@ -144,13 +141,13 @@ public class ReviewCreatorPage {
             Optional<String> result = dialog.showAndWait();
             result.ifPresent(newText -> {
                 if (newText.trim().isEmpty()) {
-                    showAlert("Error", "Review text cannot be empty.");
+                    showAlert("Error", "Answer text cannot be empty.");
                     return;
                 }
                 try {
                 	// updates the list to the current database data
                     if (dbHelper.updateReviewText(selectedReview.getId(), newText.trim())) {
-                        showAlert("Success", "Review updated successfully!");
+                        showAlert("Success", "Answer updated successfully!");
                         loadReviews(ans_id);
                         //Question selectedQuestion = questionsListView.getSelectionModel().getSelectedItem();
                     }
@@ -194,8 +191,7 @@ public class ReviewCreatorPage {
                 }
             }
         });
-	    layout.getChildren().addAll(reviewsLabel, spacerLabel, reviewsListView, 
-	    		newReviewBox, reviewOperationsBox, backButton);
+	    layout.getChildren().addAll(reviewsLabel, spacerLabel, backButton, reviewsListView, newReviewBox, reviewOperationsBox);
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage
@@ -206,14 +202,13 @@ public class ReviewCreatorPage {
         // ---------------- Load Data ----------------
         // Load existing reviews from the database.
         loadReviews(ans_id);
+        
+        
     }
     
     
-    /**
-     * Obtains current list of reviews for given answer ID.
-     * 
-     * @param answer_id		Integer to find the answer to retrieve the reviews of.
-     */
+  // Obtains current list of reviews for given answer_id
+    
     private void loadReviews(int answer_id) {
         try {
             List<Review> rList = dbHelper.getReviewsForAnswers(answer_id);
@@ -224,13 +219,6 @@ public class ReviewCreatorPage {
             showAlert("Error", "Failed to load answers: " + ex.getMessage());
         }
     }
-    
-    /******
-     * Displays an alert to the UI.
-     * 
-     * @param title		String of the title to display with the alert.
-     * @param message	String of the message to display with the alert.
-     */
     private void showAlert(String title, String message) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
