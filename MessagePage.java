@@ -72,7 +72,7 @@ public class MessagePage {
         root.setCenter(scrollPane);
         root.setBottom(inputBox);
 
-        Scene scene = new Scene(root, 400, 600);
+        Scene scene = new Scene(root, 800, 600);
         stage.setScene(scene);
         stage.setTitle("Conversation " + conversationId);
         stage.show();
