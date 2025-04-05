@@ -59,7 +59,7 @@ public class AdminHomePage {
         });
 	Button goToConversationsBtn = new Button("Go to Conversations");
         goToConversationsBtn.setOnAction(e -> {
-            ConversationsPage conversationsPage = new ConversationsPage(globalVars.cur_user.getUserName(), databaseHelper);
+            ConversationsPage conversationsPage = new ConversationsPage(GlobalVars.cur_user.getUserName(), databaseHelper);
             conversationsPage.show(primaryStage);
         });
         
