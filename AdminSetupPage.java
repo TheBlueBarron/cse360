@@ -52,6 +52,7 @@ public class AdminSetupPage {
 	        		// Create a new User object with admin role and register in the database
 		            User user=new User(userName, password, "admin");
 		            databaseHelper.register(user);
+			    GlobalVars.cur_user = user;
 		            System.out.println("Administrator setup completed.");
 		                
 		            // Navigate to the Welcome Login Page
