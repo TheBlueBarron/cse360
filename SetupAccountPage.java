@@ -75,7 +75,7 @@ public class SetupAccountPage {
 	            			// Create a new user and register them in the database
 			            	User user=new User(userName, password, role);
 			                databaseHelper.register(user);
-			                
+			                GlobalVars.cur_user = user;
 			                // Navigate to the Welcome Login Page
 			                new WelcomeLoginPage(databaseHelper).show(primaryStage,user);
 	            			}
