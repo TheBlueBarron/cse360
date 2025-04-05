@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import application.Answer;
 import application.Question;
 import application.Review;
+import databasePart1.DatabaseHelper;
+
 
 class DatabaseHelperTest {
 	
@@ -43,6 +45,16 @@ class DatabaseHelperTest {
         databasehelper.addReview(r1);
         databasehelper.addReview(r2);
         databasehelper.addReview(r3);
+	dbHelper = new DatabaseHelper();
+        dbHelper.clearAllTables();
+
+        // Register test users
+        dbHelper.register(new User("alice", "passsss1!", "student"));
+        dbHelper.register(new User("bob", "passsss1", "student"));
+        dbHelper.register(new User("charlie", "passsss1", "student"));
+        dbHelper.register(new User("dave", "passsss1", "student"));
+        dbHelper.register(new User("eve", "passsss1", "student"));
+        dbHelper.register(new User("frank", "passsss1", "student"));
 	}
 	
 	@Test
@@ -121,5 +133,16 @@ class DatabaseHelperTest {
         assertEquals(expectedResults.get(1).getText(), actualList.get(1).getText(), "Review 2 should be in the database");
         assertEquals(expectedResults.get(2).getText(), actualList.get(2).getText(), "Review 3 should be in the database");
 	}
+	dbHelper = new DatabaseHelper();
+        dbHelper.clearAllTables();
+
+        // Register test users
+        dbHelper.register(new User("alice", "passsss1!", "student"));
+        dbHelper.register(new User("bob", "passsss1", "student"));
+        dbHelper.register(new User("charlie", "passsss1", "student"));
+        dbHelper.register(new User("dave", "passsss1", "student"));
+        dbHelper.register(new User("eve", "passsss1", "student"));
+        dbHelper.register(new User("frank", "passsss1", "student"));
+}
 
 }
