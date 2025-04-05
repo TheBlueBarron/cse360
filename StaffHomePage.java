@@ -38,7 +38,11 @@ public class StaffHomePage {
 	    
 	    // Log out button
 	    Button logoutButton = new Button("LOGOUT");
-        
+         Button goToConversationsBtn = new Button("Go to Conversations");
+        goToConversationsBtn.setOnAction(e -> {
+            ConversationsPage conversationsPage = new ConversationsPage(GlobalVars.cur_user.getUserName(), databaseHelper);
+            conversationsPage.show(primaryStage);
+        });
 	       
         Label spacerLabel = new Label("\n\n\n");
         spacerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
@@ -46,10 +50,11 @@ public class StaffHomePage {
         
         
         logoutButton.setOnAction(event -> {
+		GlobalVars.cur_user = null;
         	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
         });
 
-	    layout.getChildren().addAll(userLabel, spacerLabel, logoutButton);
+	    layout.getChildren().addAll(userLabel, spacerLabel,goToConversationsBtn, logoutButton);
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage
