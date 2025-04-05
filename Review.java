@@ -6,10 +6,11 @@ public class Review {
     private int id;
     // ID of the question this answer belongs to.
     private int answerId; // Foreign key to associate with a Question
+    // ID of the reviewer who posted the review
+    private int reviewer_id;
     // The content of the answer.
     private String text;
-    // Who posted the answer.
-    private String author;
+    
 
     
     // Constructor that takes an id, answerId, text, and author
@@ -19,28 +20,28 @@ public class Review {
      * @param id
      * @param answerId
      * @param text
-     * @param author
+     * @param reviewer_id
      */
-    public Review(int id, int answerId, String text, String author) {
+    public Review(int id, int answerId, String text, int reviewer_id) {
         if (!isValidReviewText(text)) {
             throw new IllegalArgumentException("review text cannot be empty.");
         }
         this.id = id;
         this.answerId = answerId;
         this.text = text;
-        this.author = author;
+        this.reviewer_id = reviewer_id;
     }
     
-    // 
     // The database will assign the ID later.
     /**Constructor for creating a new review when the ID isn't known yet.
      * 
      * @param answerId
      * @param text
      * @param author
+     * @param reviewer_id
      */
-    public Review(int answerId, String text, String author) {
-        this(-1, answerId, text, author);
+    public Review(int answerId, String text, int reviewer_id) {
+        this(-1, answerId, text, reviewer_id);
     }
     
     // 
@@ -83,6 +84,15 @@ public class Review {
         return answerId;
     }
     
+    // Getter for the reviewerID associated with this review.
+    /**
+     * 
+     * @return id of reviewer
+     */
+    public int getReviewerId() {
+    	return reviewer_id;
+    }
+    
     // Getter for the review text.
     /**
      * 	
@@ -104,14 +114,7 @@ public class Review {
         this.text = text;
     }
     
-    // Getter for the author of the review.
-    /**
-     * Getter for the author of the review.
-     * @return author string
-     */
-    public String getAuthor() {
-        return author;
-    }
+
     
     // Overridden toString method to print out answer details in an easy-to-read format.
     /**
@@ -120,7 +123,6 @@ public class Review {
      */
     @Override
     public String toString() {
-        return "Review [id=" + id + ", answerId=" + answerId + ", text=" + text +
-               ", author=" + author + "]";
+        return "Review [id=" + id + ", answerId=" + answerId + ", text=" + text + "]";
     }
 }

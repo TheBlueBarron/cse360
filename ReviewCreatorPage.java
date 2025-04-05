@@ -13,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -63,11 +64,9 @@ public class ReviewCreatorPage {
         Label newReviewLabel = new Label("Post a New Review:");
         TextField reviewTextField = new TextField();
         reviewTextField.setPromptText("Enter your review here");
-        TextField reviewAuthorField = new TextField();
-        reviewAuthorField.setPromptText("Your name (optional, default: Anonymous)");
-        
+
         // HBox to hold the new question input fields and button.
-        HBox newReviewBox = new HBox(10, reviewTextField, reviewAuthorField);
+        HBox newReviewBox = new HBox(10, reviewTextField);
         newReviewBox.setPadding(new Insets(5));
         
 
@@ -83,9 +82,17 @@ public class ReviewCreatorPage {
                 super.updateItem(r, empty);
                 if (empty || r == null) {
                     setText(null);
-                } else {
+                } else { // Have to get reviewer name by ID
+                    int rID = r.getReviewerId();
+                    String author = "Unknown"; // in case getting the author fails
+                    try { 
+    					 author = dbHelper.getReviewerById(rID).getName();
+    				}catch (SQLException e) {
+    					e.printStackTrace();
+    				}
                     // Display question ID, text, and author in the list.
-                    setText("[" + r.getId() + "] " + r.getText() + " (by " + r.getAuthor() + ")");
+                    setText("[" + r.getId() + "] " + r.getText() + " (by " + author + ")");
+
                 }
             }
         });
@@ -95,9 +102,16 @@ public class ReviewCreatorPage {
         addReview.setOnAction(e -> {
             // Get the currently selected question to answer.
             String rText = reviewTextField.getText().trim();
-            String rAuthor = reviewAuthorField.getText().trim();
+            String rAuthor = DatabaseHelper.cur_user.getUserName();
+            int reviewer_id = -1;
+			try {
+				reviewer_id = dbHelper.getReviewerIDByUsername(rAuthor);
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+            
             // Create a new answer for the selected question.
-            Review newReview = new Review(ans_id, rText, rAuthor);
+            Review newReview = new Review(ans_id, rText, reviewer_id);
             try {
                 // Add the answer to the database.
                 dbHelper.addReview(newReview);
@@ -146,7 +160,7 @@ public class ReviewCreatorPage {
         
         // goes back to discussion board as a reviewer
         backButton.setOnAction(event -> {
-        	new DiscussionPage(dbHelper, "reviewer").show(primaryStage);
+        	new DiscussionPage(dbHelper).show(primaryStage);
         });
         
         
