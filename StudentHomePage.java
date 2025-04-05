@@ -31,7 +31,11 @@ public class StudentHomePage {
 	    
 	    		
 	    	    Label userLabel = new Label("Hello, Student!"); 
-	    
+	    Button goToConversationsBtn = new Button("Go to Conversations");
+        goToConversationsBtn.setOnAction(e -> {
+            ConversationsPage conversationsPage = new ConversationsPage(GlobalVars.cur_user.getUserName(), databaseHelper);
+            conversationsPage.show(primaryStage);
+        });
 	    	
 	    
 	    userLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
@@ -45,10 +49,11 @@ public class StudentHomePage {
         
         
         logoutButton.setOnAction(event -> {
+		GlobalVars.cur_user = null;
         	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
         });
 
-	    layout.getChildren().addAll(userLabel, spacerLabel, logoutButton);
+	    layout.getChildren().addAll(userLabel, spacerLabel, goToConversationsBtn, logoutButton);
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage
