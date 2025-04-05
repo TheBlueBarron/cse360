@@ -41,9 +41,7 @@ public class ReviewerHomePage {
 	    Label userLabel = new Label("Hello, Reviewer!"); 
 	    userLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 	    
-	    // Button to view private messages
-	    Button pmButton = new Button("View private messages");
-	    
+	  
 	    // Button to go to discussion page
 	    Button discussionPageButton = new Button("Discussion Board");
 	    
@@ -54,14 +52,20 @@ public class ReviewerHomePage {
         spacerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
         
         logoutButton.setOnAction(event -> {
+		GlobalVars.cur_user = null;
         	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
+        });
+	Button goToConversationsBtn = new Button("Go to Conversations");
+        goToConversationsBtn.setOnAction(e -> {
+	ConversationsPage conversationsPage = new ConversationsPage(GlobalVars.cur_user.getUserName(), databaseHelper);
+        conversationsPage.show(primaryStage);
         });
         
         discussionPageButton.setOnAction(event -> {
         	new DiscussionPage(databaseHelper).show(primaryStage);
         });
 
-	    layout.getChildren().addAll(userLabel, pmButton, discussionPageButton, spacerLabel, logoutButton); 
+	    layout.getChildren().addAll(userLabel, pmButton, discussionPageButton, goToConversationsBtn, spacerLabel, logoutButton); 
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage
