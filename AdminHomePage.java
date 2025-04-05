@@ -57,6 +57,11 @@ public class AdminHomePage {
         manageRolesButton.setOnAction(event -> {
         	new ManageRolesPage().show(databaseHelper, primaryStage);
         });
+	Button goToConversationsBtn = new Button("Go to Conversations");
+        goToConversationsBtn.setOnAction(e -> {
+            ConversationsPage conversationsPage = new ConversationsPage(globalVars.cur_user.getUserName(), databaseHelper);
+            conversationsPage.show(primaryStage);
+        });
         
         // Log out button set up & display
         Button logoutButton = new Button("LOGOUT");
@@ -65,13 +70,14 @@ public class AdminHomePage {
         spacerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
         
         logoutButton.setOnAction(event -> {
+		GlobalVars.cur_user = null;
         	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
         });
         
         // edit ends
 
 	    layout.getChildren().addAll(adminLabel, inviteButton, oneTimePasswordButton, 
-	    		deleteUserButton, listUsersButton, manageRolesButton, spacerLabel, logoutButton);
+	    		deleteUserButton, listUsersButton, manageRolesButton, spacerLabel, GoToConversationsBtn, logoutButton);
 	    Scene adminScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage
