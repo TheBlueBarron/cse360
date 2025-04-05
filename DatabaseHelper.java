@@ -108,6 +108,20 @@ public class DatabaseHelper {
 	    		+ "userName VARCHAR(255) UNIQUE, "
 	    		+ "request VARCHAR(20))";
 	    statement.execute(requestsTable);
+
+	    String conversationTable = "CREATE TABLE IF NOT EXISTS Converstations("
+	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
+	    		+"participent_1_id VARCHAR(255), "
+	            + "participen_2_id VARCHAR(255))";
+	    statement.execute(conversationTable);
+	    
+	    String messageTable = "CREATE TABLE IF NOT EXISTS Messages("
+	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
+	    		+ "converstaion_id INT, "
+	            + "sender_id VARCHAR(255), "
+	    		+ "text VARCHAR(1025))"
+	    		;
+	    statement.execute(messageTable);
 	}
 
 
@@ -1077,6 +1091,105 @@ public class DatabaseHelper {
     	}
     	return false;
     }
+	//pulls all conversation the user is involved with
+	public List<Conversations> getConversationsForUser(String userId) throws SQLException {
+	    List<Conversations> conversations = new ArrayList<>();
+	    String sql = "SELECT * FROM Converstations WHERE participent_1_id = ? OR participen_2_id = ?";
+	    PreparedStatement ps = connection.prepareStatement(sql);
+	    ps.setString(1, userId);
+	    ps.setString(2, userId);
+	    ResultSet rs = ps.executeQuery();
+
+	    while (rs.next()) {
+	        int id = rs.getInt("id");
+	        String p1 = rs.getString("participent_1_id");
+	        String p2 = rs.getString("participen_2_id");
+	        conversations.add(new Conversations(id, p1, p2));
+	    }
+
+	    return conversations;
+	}
+	//starts a new conversation between 2 existing users
+	public boolean createConversation(String user1, String user2) throws SQLException {
+	    String checkSql = "SELECT * FROM Converstations WHERE " +
+	            "(participent_1_id = ? AND participen_2_id = ?) OR (participent_1_id = ? AND participen_2_id = ?)";
+	    PreparedStatement checkStmt = connection.prepareStatement(checkSql);
+	    checkStmt.setString(1, user1);
+	    checkStmt.setString(2, user2);
+	    checkStmt.setString(3, user2);
+	    checkStmt.setString(4, user1);
+
+	    ResultSet rs = checkStmt.executeQuery();
+	    if (rs.next()) {
+	        return false; // Already exists
+	    }
+
+	    String insertSql = "INSERT INTO Converstations (participent_1_id, participen_2_id) VALUES (?, ?)";
+	    PreparedStatement insertStmt = connection.prepareStatement(insertSql);
+	    insertStmt.setString(1, user1);
+	    insertStmt.setString(2, user2);
+	    insertStmt.executeUpdate();
+	    return true;
+	}
+	//used to as display in conversation
+	public Message getMostRecentMessage(int conversationId) throws SQLException {
+	    String sql = "SELECT * FROM Messages WHERE converstaion_id = ? ORDER BY id DESC LIMIT 1";
+	    PreparedStatement ps = connection.prepareStatement(sql);
+	    ps.setInt(1, conversationId);
+	    ResultSet rs = ps.executeQuery();
+
+	    if (rs.next()) {
+	        int id = rs.getInt("id");
+	        String sender = rs.getString("sender_id");
+	        String text = rs.getString("text");
+	        return new Message(id, conversationId, sender, text);
+	    }
+	    return null;
+	}
+	//pushes conversation to database
+	public void insertMessage(int conversationId, String senderId, String text) throws SQLException {
+	    String sql = "INSERT INTO Messages (converstaion_id, sender_id, text) VALUES (?, ?, ?)";
+	    PreparedStatement ps = connection.prepareStatement(sql);
+	    ps.setInt(1, conversationId);
+	    ps.setString(2, senderId);
+	    ps.setString(3, text);
+	    ps.executeUpdate();
+	}
+	
+	//queres all messages that share a conversation id
+	public List<Message> getMessagesForConversation(int conversationId) throws SQLException {
+	    List<Message> messages = new ArrayList<>();
+	    String sql = "SELECT * FROM Messages WHERE converstaion_id = ? ORDER BY id ASC";
+	    PreparedStatement ps = connection.prepareStatement(sql);
+	    ps.setInt(1, conversationId);
+	    ResultSet rs = ps.executeQuery();
+
+	    while (rs.next()) {
+	        int id = rs.getInt("id");
+	        String sender = rs.getString("sender_id");
+	        String text = rs.getString("text");
+	        messages.add(new Message(id, conversationId, sender, text));
+	    }
+
+	    return messages;
+	}
+	//gets all users but the passed user name, usered in conversations to give the list of people with whom you can start a conversation
+	public List<User> getAllUsersExcept(String currentUserName) throws SQLException {
+	    List<User> users = new ArrayList<>();
+	    String sql = "SELECT userName, password, role FROM cse360users WHERE userName != ?";
+	    PreparedStatement ps = connection.prepareStatement(sql);
+	    ps.setString(1, currentUserName);
+	    ResultSet rs = ps.executeQuery();
+
+	    while (rs.next()) {
+	        String username = rs.getString("userName");
+	        String password = rs.getString("password");
+	        String role = rs.getString("role");
+	        users.add(new User(username, password, role));
+	    }
+
+	    return users;
+	}
     
     // --------------------------------------------------
     
