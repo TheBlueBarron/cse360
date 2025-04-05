@@ -51,14 +51,20 @@ public class InstructorHomePage {
 	    
 	    // ---------- Button Handlers ---------- //
 	    logoutButton.setOnAction(event -> {
+		GlobalVars.cur_user = null;
 	    	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
 	    });	
 	    
 	    roleRequestPageButton.setOnAction(event -> {
 	    	new RoleRequestPage(databaseHelper).show(primaryStage);
 	    });
+	    Button goToConversationsBtn = new Button("Go to Conversations");
+       	    goToConversationsBtn.setOnAction(e -> {
+            ConversationsPage conversationsPage = new ConversationsPage(GlobalVars.cur_user.getUserName(), databaseHelper);
+            conversationsPage.show(primaryStage);
+            });
 	    
-	    layout.getChildren().addAll(userLabel, roleRequestPageButton, spacerLabel, logoutButton); 
+	    layout.getChildren().addAll(userLabel, roleRequestPageButton, spacerLabel, goToConversationsBtn, logoutButton); 
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage
