@@ -6,7 +6,9 @@ import java.sql.SQLException;
 
 import databasePart1.DatabaseHelper;
 
-
+/**
+ * Class that launches the entire project
+ */
 public class StartCSE360 extends Application {
 
 	private static final DatabaseHelper databaseHelper = new DatabaseHelper();

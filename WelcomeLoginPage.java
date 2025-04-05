@@ -18,6 +18,12 @@ public class WelcomeLoginPage {
     public WelcomeLoginPage(DatabaseHelper databaseHelper) {
         this.databaseHelper = databaseHelper;
     }
+    
+    /**
+     * Show the Welcome Login Page.
+     * @param primaryStage
+     * @param user
+     */
     public void show( Stage primaryStage, User user) {
     	
     	VBox layout = new VBox(5);

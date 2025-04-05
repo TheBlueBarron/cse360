@@ -39,7 +39,9 @@ public class UserNameRecognizer {
 														// running
 	private static int userNameSize = 0;			// A numeric value may not exceed 16 characters
 
-	// Private method to display debugging data
+	/**
+	 * Private method to display debugging data
+	 */
 	private static void displayDebuggingInfo() {
 		// Display the current state of the FSM as part of an execution trace
 		if (currentCharNdx >= inputLine.length())
@@ -53,7 +55,9 @@ public class UserNameRecognizer {
 				nextState + "     " + userNameSize);
 	}
 	
-	// Private method to move to the next character within the limits of the input line
+	/**
+	 * Private method to move to the next character within the limits of the input line
+	 */
 	private static void moveToNextCharacter() {
 		currentCharNdx++;
 		if (currentCharNdx < inputLine.length())

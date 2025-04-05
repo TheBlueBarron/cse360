@@ -19,6 +19,10 @@ public class UserHomePage {
        this.databaseHelper = databaseHelper;
     }
 
+    /**
+     * Show the User Home Page
+     * @param primaryStage
+     */
     public void show(Stage primaryStage) {
     	VBox layout = new VBox();
 	    layout.setStyle("-fx-alignment: center; -fx-padding: 20;");

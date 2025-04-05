@@ -1,6 +1,8 @@
 package application;
 
-// This class represents a single question in our app
+/**
+ * This class represents a single question in our app
+ */
 public class Question {
     // Unique ID for the question
     private int id;
@@ -11,8 +13,14 @@ public class Question {
     // You can see if the question is resolved
     private boolean isResolved;
 
-    // Constructor that takes an id, text, author, isResolved.
-    // It throws an error if the question text is empty.
+    /**
+     * Constructor that takes an id, text, author, isResolved.
+     * It throws an error if the question text is empty.
+     * @param id
+     * @param text
+     * @param author
+     * @param isResolved
+     */
     public Question(int id, String text, String author, boolean isResolved) {
         if (!isValidQuestionText(text)) {
             throw new IllegalArgumentException("Question text cannot be empty.");
@@ -23,41 +31,68 @@ public class Question {
         this.isResolved = isResolved;
     }
     
-    // Constructor for creating a new question when we don't have an ID yet.
-    // The database will assign the ID later.
+    /**
+     * Constructor for creating a new question when we don't have an ID yet.
+     * The database will assign the ID later.
+     * @param text
+     * @param author
+     * @param isResolved
+     */
     public Question(String text, String author, boolean isResolved) {
         this(-1, text, author, isResolved);
     }
 
-    // Checks if the question text is valid (not null or blank)
+    /**
+     * Checks if the question text is valid (not null or blank)
+     * @param text
+     * @return boolean, true if valid question, false otherwise
+     */
     public static boolean isValidQuestionText(String text) {
         return text != null && !text.trim().isEmpty();
     }
     
-    // Getter for the question ID
+    /**
+     * Getter for the question ID
+     * @return The questions id
+     */
     public int getId() {
         return id;
     }
-    
-    // Setter for the question ID
+
+    /**
+     * Setter for the question ID
+     * @param id
+     */
     public void setId(int id) { 
         this.id = id; 
     }
     
-    // Getter for the question text
+    /**
+     * Getter for the question text
+     * @return The question's text
+     */
     public String getText() {
         return text;
     }
-    // Getter for resolved flag
+    
+    /**
+     * Getter for resolved flag
+     * @return boolean, true if is resolved, false otherwise
+     */
     public boolean getIsResolved() {
     	return isResolved;
     }
-    // Getter for resolved flag
+    /**
+     * Getter for resolved flag
+     */
     public void markAsResolved() {
     	isResolved = true;
     }
     
-    // Setter for the question text; validates before setting
+    /**
+     * Setter for the question text; validates before setting
+     * @param text
+     */
     public void setText(String text) {
         if (!isValidQuestionText(text)) {
             throw new IllegalArgumentException("Question text cannot be empty.");
@@ -65,12 +100,17 @@ public class Question {
         this.text = text;
     }
     
-    // Getter for the author of the question
+    /**
+     * Getter for the author of the question
+     * @return author
+     */
     public String getAuthor() {
         return author;
     }
     
-    // Overridden toString method to print out question details easily
+    /**
+     * Overridden toString method to print out question details easily
+     */
     @Override
     public String toString() {
         return "Question [id=" + id + ", text=" + text + ", author=" + author + "]";
