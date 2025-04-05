@@ -55,6 +55,13 @@ class DatabaseHelperTest {
 	void testGetReviewById() throws SQLException {
 		assertEquals("Very epic review", databasehelper.getReviewById(r1.getId()).getText(), "The Text should be the same");
 	}
+
+	@Test
+        void testGetReviewByIdNotFound() throws SQLException {
+            Review result = databasehelper.getReviewById(9999);
+        
+            assertNull(result, "The review should not be found, so the result should be null");
+        }
 	
 	@Test
 	void testGetAllReviews() throws SQLException {
@@ -93,6 +100,11 @@ class DatabaseHelperTest {
 		
 		assertEquals(expectedResults.get(0).getText(), actualList.get(0).getText(), "Review 2 should be in the database");
         assertEquals(expectedResults.get(1).getText(), actualList.get(1).getText(), "Review 3 should be in the database");
+	}
+
+	@Test
+	void testCantSearchReviews() throws SQLException {
+		assertTrue(databasehelper.searchReviews("OOGABOOGA", q.getId()).isEmpty());
 	}
 	
 	@Test
