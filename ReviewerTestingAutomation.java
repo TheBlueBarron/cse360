@@ -21,6 +21,9 @@ import databasePart1.DatabaseHelper;
 * Author: Wednesday Group 44
 * 
 * Version: 1.00 Created 4/2/2025, set of automated tests.
+* 
+* IMPORTANT NOTE: DON'T RUN THESE TESTS WITH A USED DATABASE, it will break the DB and the tests.
+* 
 */
 class ReviewerTestingAutomation {
 	
