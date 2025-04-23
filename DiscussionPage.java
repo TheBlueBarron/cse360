@@ -166,9 +166,17 @@ public class DiscussionPage {
         //TextField answerAuthorField = new TextField();
         CheckBox isAnon1 = new CheckBox("Anonymous");
         isAnon.setIndeterminate(false);
-   
+        
+        
         Button postAnswerButton = new Button("Post Answer");
-        HBox newAnswerBox = new HBox(10, answerTextField, isAnon1, postAnswerButton);
+        Label spacerLabel = new Label("                       ");
+        Button viewReviewers = new Button("View Reviewers");
+        
+        
+        viewReviewers.setOnAction(event ->  {
+        	new FindReviewerPage(dbHelper).show(primaryStage);
+        });
+        HBox newAnswerBox = new HBox(10, answerTextField, isAnon1, postAnswerButton, spacerLabel, viewReviewers);
         newAnswerBox.setPadding(new Insets(5));
 
         // ---------------- Back Button --------------------

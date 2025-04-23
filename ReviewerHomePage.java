@@ -1,5 +1,7 @@
 package application;
 
+import java.sql.SQLException;
+
 import databasePart1.DatabaseHelper;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -34,7 +36,7 @@ public class ReviewerHomePage {
      * @param primaryStage	Stage object to display the scene on.
      */
     public void show(Stage primaryStage) {
-    	VBox layout = new VBox();
+    	VBox layout = new VBox(10);
 	    layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
 	    
 	    // Label to display Hello reviewer
@@ -44,7 +46,7 @@ public class ReviewerHomePage {
 	  
 	    // Button to go to discussion page
 	    Button discussionPageButton = new Button("Discussion Board");
-	    
+	    Button viewProfileButton = new Button("View Profile");
 	    // Logout button
 	    Button logoutButton = new Button("LOGOUT");
           
@@ -52,20 +54,41 @@ public class ReviewerHomePage {
         spacerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
         
         logoutButton.setOnAction(event -> {
-		GlobalVars.cur_user = null;
+		DatabaseHelper.cur_user = null;
         	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
         });
-	Button goToConversationsBtn = new Button("Go to Conversations");
+        
+        Button goToConversationsBtn = new Button("Go to Conversations");
         goToConversationsBtn.setOnAction(e -> {
-	ConversationsPage conversationsPage = new ConversationsPage(GlobalVars.cur_user.getUserName(), databaseHelper);
+        	ConversationsPage conversationsPage = new ConversationsPage(DatabaseHelper.cur_user.getUserName(), databaseHelper);
         conversationsPage.show(primaryStage);
         });
         
         discussionPageButton.setOnAction(event -> {
         	new DiscussionPage(databaseHelper).show(primaryStage);
         });
+        
+        viewProfileButton.setOnAction(event -> {
+            try {
+                boolean isSetup = true; 
 
-	    layout.getChildren().addAll(userLabel, pmButton, discussionPageButton, goToConversationsBtn, spacerLabel, logoutButton); 
+                int reviewerId = databaseHelper.getReviewerIDByUsername(DatabaseHelper.cur_user.getUserName());
+                Reviewer reviewer = databaseHelper.getReviewerById(reviewerId);
+                
+                if (reviewer.getXP() == null || reviewer.getXP().isEmpty()) {
+                    isSetup = false;
+                }
+                
+                new ReviewerProfilePage(databaseHelper, DatabaseHelper.cur_user.getUserName(), isSetup).show(primaryStage, "reviewerpage");
+                
+            } catch (SQLException e) {
+                e.printStackTrace(); 
+            }
+        });
+
+
+
+	    layout.getChildren().addAll(userLabel, discussionPageButton, goToConversationsBtn, viewProfileButton, spacerLabel, logoutButton); 
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage

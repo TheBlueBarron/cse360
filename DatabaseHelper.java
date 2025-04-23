@@ -2,8 +2,12 @@ package databasePart1;
 
 import application.User; 
 import application.Question; 
-import application.Answer; 
+import application.Answer;
+import application.Conversations;
+import application.Message;
 import application.Review;
+import application.Reviewer;
+
 import java.sql.*; 
 import java.util.ArrayList; 
 import java.util.List; 
@@ -94,12 +98,24 @@ public class DatabaseHelper {
 	            + "FOREIGN KEY (question_id) REFERENCES Questions(id) ON DELETE CASCADE)";
 	    statement.execute(answersTable);
 	    
-	    // Reviews table
+	    // Reviewer table, stores their rating and name
+	    String reviewersTable = "CREATE TABLE IF NOT EXISTS Reviewers ("
+	    		+ "id INT AUTO_INCREMENT PRIMARY KEY, "
+	    		+ "name VARCHAR(255), "
+	    		+ "xp VARCHAR(1024), "
+	    		+ "likes INT DEFAULT 0, "
+	    		+ "dislikes INT DEFAULT 0, "
+	    		+ "rating DECIMAL(5, 3) DEFAULT 0.0, "
+	    		+ "trusted BOOLEAN DEFAULT FALSE)";
+	    statement.execute(reviewersTable);
+	    
+	    // Reviews table (linked to a reviewer)
 	    String reviewsTable = "CREATE TABLE IF NOT EXISTS Reviews ("
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
 	            + "answer_id INT, "
 	            + "text VARCHAR(1024), "
-	            + "author VARCHAR(255))";
+	            + "reviewer_id INT, "
+	            + "FOREIGN KEY (reviewer_id) REFERENCES Reviewers(id))";
 	    statement.execute(reviewsTable);
 	    
 	    // Requests table
@@ -108,10 +124,10 @@ public class DatabaseHelper {
 	    		+ "userName VARCHAR(255) UNIQUE, "
 	    		+ "request VARCHAR(20))";
 	    statement.execute(requestsTable);
-
+	    
 	    String conversationTable = "CREATE TABLE IF NOT EXISTS Converstations("
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
-	    		+"participent_1_id VARCHAR(255), "
+	    		+ "participent_1_id VARCHAR(255), "
 	            + "participen_2_id VARCHAR(255))";
 	    statement.execute(conversationTable);
 	    
@@ -119,8 +135,7 @@ public class DatabaseHelper {
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
 	    		+ "converstaion_id INT, "
 	            + "sender_id VARCHAR(255), "
-	    		+ "text VARCHAR(1025))"
-	    		;
+	    		+ "text VARCHAR(1025))";
 	    statement.execute(messageTable);
 	}
 
@@ -852,11 +867,11 @@ public class DatabaseHelper {
 	 * @throws SQLException If a database access error occurs.
 	 */
 	public void addReview(Review review) throws SQLException {
-	    String insertReview = "INSERT INTO Reviews (answer_id, text, author) VALUES (?, ?, ?)";
+	    String insertReview = "INSERT INTO Reviews (answer_id, text, reviewer_id) VALUES (?, ?, ?)";
 	    try (PreparedStatement pstmt = connection.prepareStatement(insertReview, Statement.RETURN_GENERATED_KEYS)) {
 	        pstmt.setInt(1, review.getAnswerId());      // set the ID of the question this answer belongs to
 	        pstmt.setString(2, review.getText());           // set the review text
-	        pstmt.setString(3, review.getAuthor());         // set the review author
+	        pstmt.setInt(3, review.getReviewerId());         // set the review author
 	        pstmt.executeUpdate();                          // execute the insert
 	        ResultSet rs = pstmt.getGeneratedKeys();        // get the generated ID
 	        if (rs.next()) {
@@ -881,7 +896,7 @@ public class DatabaseHelper {
 	            return new Review(
 	                rs.getInt("id"), // gets review id
 	                rs.getString("text"), // gets review text
-	                rs.getString("author") // gets review author
+	                rs.getInt("reviewer_id") // gets review author by ID
 	            );
 	        }
 	    }
@@ -905,7 +920,7 @@ public class DatabaseHelper {
 	                rs.getInt("id"), // gets review id
 	                rs.getInt("answer_id"), // gets answer_id
 	                rs.getString("text"), // gets review text
-	                rs.getString("author") // gets review author
+	                rs.getInt("reviewer_id") // gets review author ID
 	            ));
 	        }
 	    }
@@ -968,7 +983,7 @@ public class DatabaseHelper {
 		                rs.getInt("id"),
 		                rs.getInt("answer_id"),
 		                rs.getString("text"),
-		                rs.getString("author")
+		                rs.getInt("reviewer_id")
 		            ));
 			}
 			return list;
@@ -997,13 +1012,191 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getInt("answer_id"),
 	                rs.getString("text"),
-	                rs.getString("author")
+	                rs.getInt("reviewer_id")
 	            ));
 	        }
 	    }
 	    return list;  // return the list of answers for the question
 	}
     
+	// ---------- Reviewer Operations ----------
+	
+	 /**
+     * Inserts a new reviewer into the Reviewers table (only used upon creation of a reviewer).
+     *
+     * @param reviewer The Reviewer object to be saved.
+     * @throws SQLException If an error occurs while accessing the database.
+     */
+	public void saveReviewer(Reviewer reviewer) throws SQLException {
+        String addReviewer = "INSERT INTO Reviewers (name, xp, likes, dislikes, rating, trusted) VALUES (?, ?,  ?, ?, ?, ?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(addReviewer)) {
+            pstmt.setString(1, reviewer.getName());  // Set reviewer name
+            pstmt.setString(2, reviewer.getXP()); // set reviewer xp
+            pstmt.setInt(3, reviewer.getLikeCount());  // Set like count 
+            pstmt.setInt(4, reviewer.getDislikeCount());  // Set dislike count 
+            pstmt.setDouble(5, reviewer.getRating());  // Set rating 
+            pstmt.setBoolean(6, reviewer.isTrusted());  // Set trust status 
+            
+            pstmt.executeUpdate();
+        }
+    }
+	
+	 /**
+     * Method to update a reviewer after creation.
+     *
+     * @param reviewer The Reviewer object to be updated.
+     * @throws SQLException If an error occurs while accessing the database.
+     */
+	public void updateReviewer(Reviewer reviewer) throws SQLException {
+        String updateReviewer = "UPDATE Reviewers SET name = ?, xp = ?, likes = ?, dislikes = ?, rating = ?, trusted = ? WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(updateReviewer)) {
+            pstmt.setString(1, reviewer.getName());  // update reviewer name
+            pstmt.setString(2, reviewer.getXP()); // set reviewer xp
+
+            pstmt.setInt(3, reviewer.getLikeCount());  // update like count 
+            pstmt.setInt(4, reviewer.getDislikeCount());  // update dislike count 
+            pstmt.setDouble(5, reviewer.getRating());  // update rating 
+            pstmt.setBoolean(6, reviewer.isTrusted());  // update trust status 
+            pstmt.setInt(7, reviewer.getId());
+            
+            pstmt.executeUpdate();
+        }
+    }
+	
+	/**
+	 * This method fetches a review from the database based on its ID.
+	 *
+	 * @param id Id used to find specified reviewer.
+	 * @return A Reviewer object of the specified Id.
+	 * @throws SQLException If a database access error occurs.
+	 */
+	public Reviewer getReviewerById(int id) throws SQLException {
+	    String query = "SELECT * FROM Reviewers WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setInt(1, id);                            // set the ID to search for
+	        ResultSet rs = pstmt.executeQuery();            // execute the query
+	        if (rs.next()) {
+	            return new Reviewer (
+	                rs.getInt("id"), // gets reviewer id
+	                rs.getString("name"), // gets reviewer name
+	                rs.getString("xp"),
+	                rs.getInt("likes"), // gets reviewer likes
+	                rs.getInt("dislikes"), // gets reviewers dislikes
+	                rs.getDouble("rating"), // rating
+	                rs.getBoolean("trusted") // trusted status
+	                
+	            );
+	        }
+	    }
+	    return null;  // return null if no reviewer is found
+	}
+	
+
+	/**
+	 * This method fetches a retrieves a list of reviews based on answer ID and reviewer trust 
+	 * 
+	 * This method uses a joined reviewer and reviews table to return the specific list of reviews based on Reviewer metrics
+	 *
+	 * @param answer_id Id used to find specified reviews for the answer
+	 * @return A list of reviews for the answer but only with trusted reviewers in order
+	 * @throws SQLException If a database access error occurs.
+	 */
+	public List<Review> getTrustedReviewList(int answer_id) throws SQLException {
+		List<Review> trustedReviews = new ArrayList<>();
+	    String query = "SELECT review.id AS review_id, review.text AS review_text, review.answer_id, " 
+	    		+ "reviewer.id AS reviewer_id, reviewer.name AS reviewer_name, reviewer.rating AS reviewer_rating "
+	    		+ "FROM Reviews review "
+	    		+ "JOIN Reviewers reviewer ON review.reviewer_id = reviewer.id "  // Join the reviews and reviewer table by connected reviewerID
+	    		+ "WHERE review.answer_id = ? AND reviewer.trusted = true "     // Only display for certain answer and if trusted
+	    		+ "ORDER BY reviewer.rating DESC"; 								  // Order by trust level
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setInt(1, answer_id);                            // set the ID to search for
+	        ResultSet rs = pstmt.executeQuery();            // execute the query
+	        while (rs.next()) {
+	           Review review = new Review(			// create a review object
+	        		   rs.getInt("review_id"),
+	        		   rs.getInt("answer_id"), 
+	        		   rs.getString("review_text"),
+	        		   rs.getInt("reviewer_id")
+	        		   );
+	           trustedReviews.add(review); 			// put the object in a trusted list
+	        }
+	    }
+	    return trustedReviews;  // return the list of trusted reviews
+	}
+	
+	/**
+	 *
+	 * @param username the posters username
+	 * @return the reviewer's ID
+	 * @throws SQLException
+	 */
+	public int getReviewerIDByUsername(String username) throws SQLException {
+	    String query = "SELECT id FROM Reviewers WHERE name = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setString(1, username);                            // set the ID to search for
+	        ResultSet rs = pstmt.executeQuery();            // execute the query
+	        if (rs.next()) {
+	                return rs.getInt("id"); // returns id
+	        }
+	    }
+	    return -1; 							// if no reviewer found return -1
+	}
+	
+	/**
+	 * Returns reviewer with matching reviewID
+	 * @param reviewerId
+	 * @return
+	 * @throws SQLException
+	 */
+	public List<Review> getReviewsByReviewerId(int reviewerId) throws SQLException {
+	    List<Review> reviews = new ArrayList<>();
+	    String query = "SELECT * FROM Reviews WHERE reviewer_id = ?";
+	    
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setInt(1, reviewerId);
+	        ResultSet rs = pstmt.executeQuery();
+	        
+	        while (rs.next()) {
+	            Review review = new Review(
+	                rs.getInt("id"),
+	                rs.getInt("answer_id"),
+	                rs.getString("text"),
+	                rs.getInt("reviewer_id")
+	            );
+	            reviews.add(review);
+	        }
+	    }
+	    return reviews;
+	}
+
+	/**
+	 * Returns list of all registered reviewers
+	 * @return
+	 * @throws SQLException
+	 */
+	public List<Reviewer> getAllReviewers() throws SQLException {
+	    List<Reviewer> reviewers = new ArrayList<>();
+	    String query = "SELECT * FROM Reviewers";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query);
+	         ResultSet rs = pstmt.executeQuery()) {
+	        while (rs.next()) {
+	            Reviewer reviewer = new Reviewer(
+	                rs.getInt("id"),
+	                rs.getString("name"),
+	                rs.getString("xp"),
+	                rs.getInt("likes"),
+	                rs.getInt("dislikes"),
+	                rs.getDouble("rating"),
+	                rs.getBoolean("trusted")
+	            );
+	            reviewers.add(reviewer);
+	        }
+	    }
+	    return reviewers;
+	}
+
+	
     // ---------- Role Request Operations ----------
 	
 	/**
@@ -1059,6 +1252,15 @@ public class DatabaseHelper {
     	try (PreparedStatement pstmt = connection.prepareStatement(requestRole)) {
     		String existingRequest = getRoleRequest(userName);
     		
+    		// Check that params are valid before proceeding
+    		if (userName == null || userName.isEmpty()) {
+    			return false;
+    		}
+    		
+    		if (requestedRole == null || requestedRole.isEmpty()) {
+    			return false;
+    		}
+    		// Check if user already has an existing request; if not, proceed
     		if (existingRequest == null || existingRequest.isEmpty()) {
     			pstmt.setString(1, userName);
         		pstmt.setString(2, requestedRole);
@@ -1082,6 +1284,11 @@ public class DatabaseHelper {
     	try (PreparedStatement pstmt = connection.prepareStatement(deleteRole)) {
     		String existingRequest = getRoleRequest(userName);
     		
+    		// Check for valid params before executing
+    		if (userName == null || userName.isEmpty()) {
+    			return false;
+    		}
+    		
     		if (!(existingRequest == null) && !existingRequest.isEmpty()) {
     			pstmt.setString(1, userName);
     			return pstmt.executeUpdate() > 0;
@@ -1091,6 +1298,9 @@ public class DatabaseHelper {
     	}
     	return false;
     }
+    
+    // ---------- Private Message Operations ----------
+    
 	//pulls all conversation the user is involved with
 	public List<Conversations> getConversationsForUser(String userId) throws SQLException {
 	    List<Conversations> conversations = new ArrayList<>();
@@ -1156,7 +1366,7 @@ public class DatabaseHelper {
 	    ps.executeUpdate();
 	}
 	
-	//queres all messages that share a conversation id
+	// queres all messages that share a conversation id
 	public List<Message> getMessagesForConversation(int conversationId) throws SQLException {
 	    List<Message> messages = new ArrayList<>();
 	    String sql = "SELECT * FROM Messages WHERE converstaion_id = ? ORDER BY id ASC";
@@ -1173,7 +1383,7 @@ public class DatabaseHelper {
 
 	    return messages;
 	}
-	//gets all users but the passed user name, usered in conversations to give the list of people with whom you can start a conversation
+	// gets all users but the passed user name, usered in conversations to give the list of people with whom you can start a conversation
 	public List<User> getAllUsersExcept(String currentUserName) throws SQLException {
 	    List<User> users = new ArrayList<>();
 	    String sql = "SELECT userName, password, role FROM cse360users WHERE userName != ?";
@@ -1192,6 +1402,8 @@ public class DatabaseHelper {
 	}
     
     // --------------------------------------------------
+    
+    // ------------------------------------------------
     
 	/**
 	 * Closes the database connection and statement.

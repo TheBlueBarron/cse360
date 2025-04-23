@@ -11,10 +11,12 @@ import databasePart1.DatabaseHelper;
  * 
  * @author Wednesday 44 of CSE 360
  */
+@SuppressWarnings("unused")
 public class Reviewer {
 	// Reviewer's name and Id
 	private int Id;
 	private String name;
+	private String xp;
 	
 	// Stores the students likes, dislikes, and a calculated rating
 	private int likes;
@@ -33,8 +35,18 @@ public class Reviewer {
 	 * 
 	 * @param name The name for the reviewer
 	 */
+	public Reviewer(String name, String xp) {
+		this.name = name;
+		this.xp = xp;
+		this.likes = 0;
+		this.dislikes = 0;
+		this.rating = 0.0;
+		this.isTrusted = false;
+	}
+	
 	public Reviewer(String name) {
 		this.name = name;
+		this.xp = "";
 		this.likes = 0;
 		this.dislikes = 0;
 		this.rating = 0.0;
@@ -49,9 +61,10 @@ public class Reviewer {
 	 * @param rating reviewer's rating
 	 * @param isTrusted the reviewer's trusted status
 	 */
-	public Reviewer(int Id, String name, int likes, int dislikes, double rating, boolean isTrusted ) {
+	public Reviewer(int Id, String name, String xp, int likes, int dislikes, double rating, boolean isTrusted ) {
 		this.Id = Id;
 		this.name = name;
+		this.xp = xp;
 		this.likes = likes;
 		this.dislikes = dislikes;
 		this.rating = rating;
@@ -79,6 +92,15 @@ public class Reviewer {
      * Gets the total like count for this reviewer	
      * @return The total like count for the reviewer.
      */
+    
+    
+    /**
+     * Gets reviewers experience
+     * @return The reviewers experience they listed
+     */
+    public String getXP() { return xp; }
+    
+    
     public int getLikeCount() { return likes; }
 
     /**
@@ -138,6 +160,14 @@ public class Reviewer {
      */
     private void updateTrustStatus() {
         this.isTrusted = rating >= 1.5;  // Trusted if rating >= 1.5
+    }
+    
+    /**
+     * setter for user experience
+     * @param xp
+     */
+    public void setXp(String xp) {
+    	this.xp = xp;
     }
 	
 }
