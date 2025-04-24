@@ -43,7 +43,7 @@ public class StaffRoleTest {
     
     @Test
     public void testGetRolesForUser() {
-        String role = db.getRolesForUser("Student");  
+        String role = db.getRolesForUser("Student");  // Existing username on my db, change it to one of your existing username
         assertNotNull(role);
         assertTrue(role.length() > 0);
     }
@@ -51,7 +51,7 @@ public class StaffRoleTest {
     
     @Test
     public void testGetUserCreationDate() {
-        String date = db.getUserCreationDate("Student"); 
+        String date = db.getUserCreationDate("Student"); // Existing username on my db
         assertNotNull(date);
         assertTrue(date.length() > 5);
     }
@@ -59,7 +59,7 @@ public class StaffRoleTest {
     
     @Test
     public void testGetQuestionsByUser() {
-        List<Question> userQs = db.getQuestionsByUser("Student"); 
+        List<Question> userQs = db.getQuestionsByUser("Student"); // Existing username on my db
         assertNotNull(userQs);
     }
 
