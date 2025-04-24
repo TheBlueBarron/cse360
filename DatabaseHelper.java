@@ -71,7 +71,8 @@ public class DatabaseHelper {
 				+ "id INT AUTO_INCREMENT PRIMARY KEY, "
 				+ "userName VARCHAR(255) UNIQUE, "
 				+ "password VARCHAR(255), "
-				+ "role VARCHAR(100))";
+				+ "role VARCHAR(100), "
+				+ "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
 		statement.execute(userTable);
 		
 		// Create the invitation codes table
@@ -1399,6 +1400,147 @@ public class DatabaseHelper {
 	    }
 
 	    return users;
+	}
+	/**
+	 * Returns a comma-separated string of roles assigned to a user.
+	 *
+	 * @param username the username to look up
+	 * @return roles as a string
+	 */
+	public String getRolesForUser(String username) {
+	    String roles = "";
+	    try {
+	        connectToDatabase();
+	        String query = "SELECT role FROM cse360users WHERE userName = ?";
+	        PreparedStatement pstmt = connection.prepareStatement(query);
+	        pstmt.setString(1, username);
+	        ResultSet rs = pstmt.executeQuery();
+	        if (rs.next()) {
+	            roles = rs.getString("role");
+	        }
+	        rs.close();
+	        pstmt.close();
+	        closeConnection();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return roles;
+	}
+
+	/**
+	 * Gets the account creation date of a user.
+	 *
+	 * @param username the user to look up
+	 * @return the account creation date as a string
+	 */
+	public String getUserCreationDate(String username) {
+	    String date = "";
+	    try {
+	        connectToDatabase();
+	        String query = "SELECT creation_date FROM cse360users WHERE userName = ?";
+	        PreparedStatement pstmt = connection.prepareStatement(query);
+	        pstmt.setString(1, username);
+	        ResultSet rs = pstmt.executeQuery();
+	        if (rs.next()) {
+	        	Timestamp timestamp = rs.getTimestamp("creation_date");
+	        	LocalDateTime ldt = timestamp.toLocalDateTime();
+	        	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+	        	date = ldt.format(formatter); // 2025-04-22 21:48
+
+	        }
+	        rs.close();
+	        pstmt.close();
+	        closeConnection();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return date;
+	}
+
+	/**
+	 * Returns a list of questions asked by the given user.
+	 *
+	 * @param username the user whose questions to retrieve
+	 * @return a list of Question objects
+	 */
+	public List<Question> getQuestionsByUser(String username) {
+	    List<Question> questions = new ArrayList<>();
+	    try {
+	        connectToDatabase();
+	        String sql = "SELECT * FROM Questions WHERE author = ?";
+	        PreparedStatement pstmt = connection.prepareStatement(sql);
+	        pstmt.setString(1, username);
+	        ResultSet rs = pstmt.executeQuery();
+
+	        while (rs.next()) {
+	            int id = rs.getInt("id");
+	            String text = rs.getString("text");
+	            boolean resolved = rs.getBoolean("isResolved");
+	            boolean flagged = rs.getBoolean("flagged");  // added new for flagging
+	            questions.add(new Question(id, text, username, resolved, flagged));
+	        }
+
+	        rs.close();
+	        pstmt.close();
+	        closeConnection();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return questions;
+	}
+	
+	/**
+	 * Retrieves a list of all flagged questions from the database.
+	 * A flagged question is one that has been marked by staff for review due to inappropriate or suspicious content.
+	 *
+	 * @return a list of {@link Question} objects that are flagged for review
+	 * @throws SQLException if a database access error occurs
+	 */	
+	public List<Question> getFlaggedQuestions() throws SQLException {
+	    connectToDatabase();
+	    List<Question> list = new ArrayList<>();
+	    String sql = "SELECT * FROM Questions WHERE flagged = true";
+	    PreparedStatement pstmt = connection.prepareStatement(sql);
+	    ResultSet rs = pstmt.executeQuery();
+
+	    while (rs.next()) {
+	    	list.add(new Question(
+	    		    rs.getInt("id"),
+	    		    rs.getString("text"),
+	    		    rs.getString("author"),
+	    		    rs.getBoolean("isResolved"),
+	    		    rs.getBoolean("flagged")
+	    		));
+	    }
+
+	    rs.close();
+	    pstmt.close();
+	    closeConnection();
+	    return list;
+	}
+	
+	/**
+	 * Sets the flagged status of a specific question in the database.
+	 * This is typically used by staff to mark a question for review due to
+	 * inappropriate or suspicious content.
+	 *
+	 * @param id the unique ID of the question to update
+	 * @param flagged true to mark the question as flagged, false to unflag it
+	 * @return true if the update was successful (i.e., one or more rows were affected), false otherwise
+	 * @throws SQLException if a database access error occurs
+	 */
+	public boolean setQuestionFlagged(int id, boolean flagged) throws SQLException {
+		connectToDatabase();
+		String query = "UPDATE Questions SET flagged = ? WHERE id = ?";
+		PreparedStatement pstmt = connection.prepareStatement(query);
+		pstmt.setBoolean(1, true);
+		pstmt.setInt(2, id);  // Make sure this matches an existing row
+		int rowsAffected = pstmt.executeUpdate();
+		 pstmt.close();           // clean up
+		    closeConnection();       // optional: close right away
+		    
+		return rowsAffected > 0;
+
 	}
     
     // --------------------------------------------------
