@@ -73,11 +73,15 @@ public class AdminHomePage {
 		GlobalVars.cur_user = null;
         	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
         });
-        
+        Button flaggedButton = new Button("View Flagged Questions");
+        flaggedButton.setOnAction(e -> {
+            FlaggedQuestionsPage flaggedPage = new FlaggedQuestionsPage(new DatabaseHelper());
+            flaggedPage.show(new Stage());
+        });
         // edit ends
 
 	    layout.getChildren().addAll(adminLabel, inviteButton, oneTimePasswordButton, 
-	    		deleteUserButton, listUsersButton, manageRolesButton, spacerLabel, GoToConversationsBtn, logoutButton);
+	    		deleteUserButton, listUsersButton, manageRolesButton, goToConversationsBtn, flaggedButton, spacerLabel, logoutButton);
 	    Scene adminScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage
