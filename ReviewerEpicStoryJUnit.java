@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class TestReviewerQueries {
+class ReviewerEpicStoryJUnit {
 	private static DatabaseHelper databaseHelper = new DatabaseHelper();
 
 	@BeforeAll
