@@ -12,6 +12,8 @@ public class Question {
     private String author;
     // You can see if the question is resolved
     private boolean isResolved;
+    // If the question has been flagged
+    private boolean flagged;
 
     /**
      * Constructor that takes an id, text, author, isResolved.
@@ -21,7 +23,7 @@ public class Question {
      * @param author
      * @param isResolved
      */
-    public Question(int id, String text, String author, boolean isResolved) {
+    public Question(int id, String text, String author, boolean isResolved, boolean flagged) {
         if (!isValidQuestionText(text)) {
             throw new IllegalArgumentException("Question text cannot be empty.");
         }
@@ -29,6 +31,7 @@ public class Question {
         this.text = text;
         this.author = author;
         this.isResolved = isResolved;
+        this.flagged = flagged;
     }
     
     /**
@@ -38,8 +41,8 @@ public class Question {
      * @param author
      * @param isResolved
      */
-    public Question(String text, String author, boolean isResolved) {
-        this(-1, text, author, isResolved);
+    public Question(String text, String author, boolean isResolved, boolean flagged) {
+        this(-1, text, author, isResolved, flagged);
     }
 
     /**
@@ -114,5 +117,8 @@ public class Question {
     @Override
     public String toString() {
         return "Question [id=" + id + ", text=" + text + ", author=" + author + "]";
+    }
+    public boolean getFlagged() {
+    	return flagged;
     }
 }

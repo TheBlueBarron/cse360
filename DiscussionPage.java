@@ -37,6 +37,9 @@ public class DiscussionPage {
     // Observable list for questions and its ListView for UI display
     private ObservableList<Question> questionsList;
     private ListView<Question> questionsListView;
+    private List<Question> answeredQuestionsList;
+    private List<Question> unansweredQuestionsList;
+    private List<Question> allQuestionsList;
     // Observable list for answers and its ListView for UI display
     private ObservableList<Answer> answersList;
     private ListView<Answer> answersListView;
@@ -74,10 +77,14 @@ public class DiscussionPage {
         questionTextField.setPromptText("Enter your question here");
         CheckBox isAnon = new CheckBox("Anonymous");
         isAnon.setIndeterminate(false);
+        CheckBox showAnsweredQuestions = new CheckBox("Show Answered Questions");
+        CheckBox showUnansweredQuestions = new CheckBox("Show Unanswered Questions");
+        showAnsweredQuestions.setIndeterminate(false);
+        showUnansweredQuestions.setIndeterminate(false);    
         Button postQuestionButton = new Button("Post Question");
         
         // HBox to hold the new question input fields and button.
-        HBox newQuestionBox = new HBox(10, questionTextField, isAnon,postQuestionButton);
+        HBox newQuestionBox = new HBox(10, questionTextField, isAnon, postQuestionButton, showAnsweredQuestions, showUnansweredQuestions);
         newQuestionBox.setPadding(new Insets(5));
         
         // ---------------- Questions List Section ----------------
@@ -259,13 +266,14 @@ public class DiscussionPage {
             	qAuthor = "Anonymous";
             }
             boolean isResolved = false;
+            boolean flagged = false;
             if (qText.isEmpty()) {
                 showAlert("Error", "Question text cannot be empty.");
                 return;
             }
           
             // Create a new question object.
-            Question newQuestion = new Question(qText, qAuthor, isResolved);
+            Question newQuestion = new Question(qText, qAuthor, isResolved, flagged);
             try {
                 // Add it to the database.
                 dbHelper.addQuestion(newQuestion);
@@ -278,6 +286,50 @@ public class DiscussionPage {
                 ex.printStackTrace();
                 showAlert("Error", "Failed to post question: " + ex.getMessage());
             }
+        });
+        
+        // Handles showing answered questions list
+        showAnsweredQuestions.setOnAction(e -> {
+        	if(showAnsweredQuestions.isSelected()) {  // if selected
+	        	try {
+					answeredQuestionsList = dbHelper.getAnsweredQuestionsList(); // populate list of answered questions with DB query
+					questionsListView.getItems().setAll(answeredQuestionsList);  // set the ListView for display to the answered questions
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+					showAlert("Error", "failed to get answered questions: " + e1.getMessage());
+				}
+        	}
+        	else {
+        		try {
+        			allQuestionsList = dbHelper.getAllQuestions();				// if show answered question is unselected, populate list with all questions
+        			questionsListView.getItems().setAll(allQuestionsList);		// set ListView to all questions
+        		} catch(SQLException e2) {
+        			e2.printStackTrace();
+        			showAlert("Error", "Failed to get all questions: " + e2.getMessage());
+        		}
+        	}
+        });
+        
+        // Handles showing unanswered questions list
+        showUnansweredQuestions.setOnAction(e -> {
+        	if(showUnansweredQuestions.isSelected()) {  // if selected
+	        	try {
+					unansweredQuestionsList = dbHelper.getUnansweredQuestionsList(); // populate list of unanswered questions with DB query
+					questionsListView.getItems().setAll(unansweredQuestionsList);  // set the ListView for display to the unanswered questions
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+					showAlert("Error", "failed to get unanswered questions: " + e1.getMessage());
+				}
+        	}
+        	else {
+        		try {
+        			allQuestionsList = dbHelper.getAllQuestions();				// if show unanswered question is unselected, populate list with all questions
+        			questionsListView.getItems().setAll(allQuestionsList);		// set ListView to all questions
+        		} catch(SQLException e2) {
+        			e2.printStackTrace();
+        			showAlert("Error", "Failed to get all questions: " + e2.getMessage());
+        		}
+        	}
         });
         
         // Handle posting a new answer.

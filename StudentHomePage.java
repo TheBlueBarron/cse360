@@ -30,12 +30,21 @@ public class StudentHomePage {
 	    // Label to display Hello Student
 	    
 	    		
-	    	    Label userLabel = new Label("Hello, Student!"); 
+	    Label userLabel = new Label("Hello, Student!"); 
+	    Button discussionBoardButton = new Button("Go to Discussion Board");
 	    Button goToConversationsBtn = new Button("Go to Conversations");
+	    Button reviewerRatingButton = new Button("Curate Your Trusted Reveiwers");
         goToConversationsBtn.setOnAction(e -> {
-            ConversationsPage conversationsPage = new ConversationsPage(GlobalVars.cur_user.getUserName(), databaseHelper);
+            ConversationsPage conversationsPage = new ConversationsPage(DatabaseHelper.cur_user.getUserName(), databaseHelper);
             conversationsPage.show(primaryStage);
         });
+	    discussionBoardButton.setOnAction(e -> {
+	    	new DiscussionPage(databaseHelper).show(primaryStage);
+	    });
+	    reviewerRatingButton.setOnAction(e -> {
+	    	new ReviewerRatingPage(databaseHelper).show(primaryStage);
+	    });
+
 	    	
 	    
 	    userLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
@@ -43,17 +52,20 @@ public class StudentHomePage {
 	    Button logoutButton = new Button("LOGOUT");
         
 	       
-        Label spacerLabel = new Label("\n\n\n");
+        Label spacerLabel = new Label("\n\n");
+        Label spacerLabel2 = new Label("\n\n");
+
         spacerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
         
         
         
         logoutButton.setOnAction(event -> {
-		GlobalVars.cur_user = null;
+		DatabaseHelper.cur_user = null;
         	new SetupLoginSelectionPage(databaseHelper).show(primaryStage);
         });
-
-	    layout.getChildren().addAll(userLabel, spacerLabel, goToConversationsBtn, logoutButton);
+        
+	    layout.setSpacing(10);
+	    layout.getChildren().addAll(userLabel, spacerLabel, discussionBoardButton, goToConversationsBtn, reviewerRatingButton, spacerLabel2, logoutButton);
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage

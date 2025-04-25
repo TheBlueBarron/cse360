@@ -71,13 +71,18 @@ public class SetupAccountPage {
 	            		if(passwordErrMessage.length() == 0) {
 	            			// Validate the invitation code
 	            			if (databaseHelper.validateInvitationCode(code)) {
+	            				
+	            				if(role == "reviewer") {
+				            		Reviewer reviewer = new Reviewer(userName);
+				            		databaseHelper.saveReviewer(reviewer);
+				            	}
 	            			
-	            			// Create a new user and register them in the database
-			            	User user=new User(userName, password, role);
-			                databaseHelper.register(user);
+	            				// Create a new user and register them in the database
+	            				User user=new User(userName, password, role);
+	            				databaseHelper.register(user);
 			                
-			                // Navigate to the Welcome Login Page
-			                new WelcomeLoginPage(databaseHelper).show(primaryStage,user);
+	            				// Navigate to the Welcome Login Page
+	            				new WelcomeLoginPage(databaseHelper).show(primaryStage,user);
 	            			}
 	            			else {
 	            				errorLabel.setText("Please enter a valid invitation code");

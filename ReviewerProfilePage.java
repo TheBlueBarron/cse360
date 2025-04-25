@@ -1,8 +1,10 @@
 package application;
 
 import databasePart1.DatabaseHelper;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.util.List;
@@ -19,8 +21,9 @@ public class ReviewerProfilePage {
         this.isSet = isSet;
     }
 
-    public void show(Stage primaryStage, String location) {
+    public void show(Stage primaryStage, String location) {        
         VBox layout = new VBox(10);
+        HBox backButtons = new HBox(560);
         layout.setStyle("-fx-alignment: center; -fx-padding: 20;");
 
         try {
@@ -80,10 +83,15 @@ public class ReviewerProfilePage {
 
             Label reviewListLabel = new Label("Reviews:");
             reviewListLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
-            layout.getChildren().addAll(reviewListLabel, reviewsListView);
+            layout.getChildren().addAll(reviewListLabel, reviewsListView, backButtons);
 
-            // --- Back Button ---
+            // --- Back Buttons ---
             Button backButton = new Button("Back");
+            Button homePageButton = new Button("Home Page");
+            Button discussionPageButton = new Button("Disscussion Board");
+            backButtons.getChildren().addAll(discussionPageButton, homePageButton);
+            discussionPageButton.setAlignment(Pos.CENTER_RIGHT);
+            homePageButton.setAlignment(Pos.CENTER_RIGHT);
             /*
              * Voodoo magic to differentiate between a discussion user viewing profiles, and a reviewer viewing it
              */
@@ -94,7 +102,35 @@ public class ReviewerProfilePage {
                     new ReviewerHomePage(databaseHelper).show(primaryStage); 
                 }
             });
-            layout.getChildren().add(backButton);
+            
+            homePageButton.setOnAction(e -> {
+            	String role = DatabaseHelper.cur_user.getRole();
+              	if(role.equals("admin")) {
+    	    		new AdminHomePage(databaseHelper).show(primaryStage);
+    	    	}
+    	    	else if(role.equals("user")) {
+    	    		new UserHomePage(databaseHelper).show(primaryStage);
+    	    	}
+    	    	else if(role.equals("student")) {
+    	    		new StudentHomePage(databaseHelper).show(primaryStage); 
+    	    	}
+    	    	else if(role.equals("instructor")) {
+    	    		new InstructorHomePage(databaseHelper).show(primaryStage); 
+    	    	}
+    	    	else if(role.equals("staff")) {
+    	    		new StaffHomePage(databaseHelper).show(primaryStage); 
+    	    	}
+    	    	else if(role.equals("reviewer")){
+    	    		new ReviewerHomePage(databaseHelper).show(primaryStage);  
+    	    	}
+            });
+            
+            discussionPageButton.setOnAction(e -> {
+            	new DiscussionPage(databaseHelper).show(primaryStage);
+            });
+            
+
+            //layout.getChildren().add(backButton);
 
         } catch (Exception e) {
             e.printStackTrace();

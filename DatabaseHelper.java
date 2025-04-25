@@ -1,6 +1,6 @@
 package databasePart1;
 
-import application.User; 
+import application.User;  
 import application.Question; 
 import application.Answer;
 import application.Conversations;
@@ -8,7 +8,9 @@ import application.Message;
 import application.Review;
 import application.Reviewer;
 
-import java.sql.*; 
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList; 
 import java.util.List; 
 import java.util.UUID;
@@ -31,7 +33,8 @@ public class DatabaseHelper {
 	
 	// JDBC driver name and database URL 
 	static final String JDBC_DRIVER = "org.h2.Driver";   
-	static final String DB_URL = "jdbc:h2:~/FoundationDatabase";  
+	static final String DB_URL = "jdbc:h2:~/FoundationDatabase"; 
+	static final String DB_URL_TEST = "jdbc:h2:mem:testdb";
 
 	//  Database credentials 
 	static final String USER = "sa"; 
@@ -62,6 +65,39 @@ public class DatabaseHelper {
 	}
 	
 	/**
+	 * This method is used for testing, and when called creates an in memory database to use instead of the production DB.
+	 * It initializes the usual tables so testing can be conducted on any.
+	 * 
+	 * DB_URL_TEST uses 'mem' which creates an in memory database that's removed when all connections are closed.
+	 * 
+	 * @throws SQLException
+	 */
+	public void connectToTestDB() throws SQLException {
+		try {
+			Class.forName(JDBC_DRIVER);
+			connection = DriverManager.getConnection(DB_URL_TEST, USER, PASS);
+			statement = connection.createStatement();
+			createTables();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} 
+
+	}
+	
+	/**
+	 * This method simply drops all the database tables, useful for testing.
+	 * 
+	 * @throws SQLException
+	 */
+	public void dropAllTables() throws SQLException {
+		try {
+			statement.execute("DROP ALL OBJECTS");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
 	 * This method creates all needed tables used for storage in the database.
 	 * 
 	 * @throws SQLException upon failure to create at least one table
@@ -86,7 +122,8 @@ public class DatabaseHelper {
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
 	            + "text VARCHAR(1024), "
 	            + "author VARCHAR(255), "
-	            + "isResolved BOOLEAN)"; 
+	            + "isResolved BOOLEAN, "
+	            + "flagged BOOLEAN)";
 	    statement.execute(questionsTable);
 	    
 	    // Answers table
@@ -337,7 +374,8 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getString("text"),
 	                rs.getString("author"),
-	                rs.getBoolean("isResolved") 			
+	                rs.getBoolean("isResolved"),
+	                rs.getBoolean("flagged")
 	            );
 	        }
 	    }
@@ -360,8 +398,8 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getString("text"),
 	                rs.getString("author"),
-	                rs.getBoolean("isResolved") 
-	                
+	                rs.getBoolean("isResolved"), 
+	                rs.getBoolean("flagged")	                
 	            ));
 	        }
 	    }
@@ -441,7 +479,8 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getString("text"),
 	                rs.getString("author"),
-	                rs.getBoolean("isResolved")
+	                rs.getBoolean("isResolved"),
+	                rs.getBoolean("flagged")
 	            ));
 	        }
 	    }
@@ -467,11 +506,73 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getString("text"),
 	                rs.getString("author"),
-	                rs.getBoolean("isResolved")
+	                rs.getBoolean("isResolved"),
+	                rs.getBoolean("flagged")
 	            ));
 	        }
 	    }
 	    return list;  // return the list of matching questions
+	}
+	
+	/**
+	 * This method fetches a list of questions that have answers to them. 
+	 * 
+	 * This method is used so that staff can more easily review student's answers and verify their validity,
+	 * and so students can more easily access pertinent information.
+	 * 
+	 * @return A list of questions that have answers
+	 * @throws SQLException If a database access error occurs.
+	 */
+	public List<Question> getAnsweredQuestionsList() throws SQLException {
+		List<Question> answeredQuestionsList = new ArrayList<>();
+	    String query = "SELECT q.id AS question_id, q.text AS question_text, q.author AS question_author, q.isResolved AS question_isResolved, q.flagged AS question_flagged "   
+	    		+ "FROM Questions q "
+	    		+ "JOIN Answers a ON q.id = a.question_id";  // This now only selects questions that are joined with an answer.	
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        ResultSet rs = pstmt.executeQuery();            // execute the query
+	        while (rs.next()) {
+	           Question question = new Question(			// create a question object
+	        		   rs.getInt("question_id"),
+	        		   rs.getString("question_text"),
+	        		   rs.getString("question_author"),
+	        		   rs.getBoolean("question_isResolved"),
+	        		   rs.getBoolean("question_flagged")
+	        		   );
+	           answeredQuestionsList.add(question); 			// put the question object in the list
+	        }
+	    }
+	    return answeredQuestionsList;  // return the answered questions
+	}
+	
+	/**
+	 * This method fetches a list of questions that don't have answers to them. 
+	 * 
+	 * This method is used so that staff can more easily review student's answers and verify their validity,
+	 * and so students can more easily access pertinent information.
+	 * 
+	 * @return A list of questions that don't have answers
+	 * @throws SQLException If a database access error occurs.
+	 */
+	public List<Question> getUnansweredQuestionsList() throws SQLException {
+		List<Question> unansweredQuestionsList = new ArrayList<>();
+	    String query = "SELECT q.id AS question_id, q.text AS question_text, q.author AS question_author, q.isResolved AS question_isResolved, q.flagged AS question_flagged "   
+	    		+ "FROM Questions q "
+	    		+ "LEFT JOIN Answers a ON q.id = a.question_id "  // This joins questions and answers tables, even questions with no answers
+	    		+ "WHERE a.question_id IS NULL";							  // For questions with no answers, those columns are set to null
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        ResultSet rs = pstmt.executeQuery();            // execute the query
+	        while (rs.next()) {
+	           Question question = new Question(			// create a question object
+	        		   rs.getInt("question_id"),
+	        		   rs.getString("question_text"),
+	        		   rs.getString("question_author"),
+	        		   rs.getBoolean("question_isResolved"),
+	        		   rs.getBoolean("question_flagged")
+	        		   );
+	           unansweredQuestionsList.add(question); 			// put the question object in the list
+	        }
+	    }
+	    return unansweredQuestionsList;  // return the list of unanswered questions
 	}
 
 	// ---------------- Answer Operations ----------------

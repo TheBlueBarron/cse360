@@ -9,6 +9,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -53,6 +54,9 @@ public class NonReviewerViewPage {
 	    CheckBox showTrusted = new CheckBox("Show Trusted Reviews");
 	    Button dislikeReviewButton = new Button("Dislike");
         Label spacerLabel = new Label("\n\n\n");
+        Label spacerLabel2 = new Label("\n\n");
+        Label spacerLabel3 = new Label("\n");
+
         spacerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
         
         
@@ -160,7 +164,10 @@ public class NonReviewerViewPage {
         
         
         
-	    layout.getChildren().addAll(userLabel, reviewsListView, backButton, likeReviewButton, dislikeReviewButton, showTrusted);
+        HBox hbox = new HBox(likeReviewButton, dislikeReviewButton);
+	    layout.getChildren().addAll(reviewsListView, hbox, spacerLabel3, showTrusted, spacerLabel2, backButton);
+	    hbox.setAlignment(Pos.CENTER);
+	    hbox.setSpacing(20);
 	    Scene userScene = new Scene(layout, 800, 400);
 
 	    // Set the scene to primary stage
