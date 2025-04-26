@@ -23,7 +23,14 @@ public class Reviewer {
 	private int dislikes;
 	private double rating;
 	
-	private boolean isTrusted; // Boolean calculated by student's ratings
+	// Keeps track of the number of Reviews made
+	private int numOfReviews;
+	
+	// Reviewers score
+	private double score;
+	
+	// Shows if reviewer is trustworthy according to the system
+	private boolean isTrusted; 
 	
     private DatabaseHelper dbHelper;
     
@@ -42,6 +49,7 @@ public class Reviewer {
 		this.dislikes = 0;
 		this.rating = 0.0;
 		this.isTrusted = false;
+		this.score = 0.0;
 	}
 	
 	public Reviewer(String name) {
@@ -51,6 +59,7 @@ public class Reviewer {
 		this.dislikes = 0;
 		this.rating = 0.0;
 		this.isTrusted = false;
+		this.score = 0.0;
 	}
 	
 	/** Constructor (allows us to return an updated reviewer object if needed)
@@ -61,7 +70,7 @@ public class Reviewer {
 	 * @param rating reviewer's rating
 	 * @param isTrusted the reviewer's trusted status
 	 */
-	public Reviewer(int Id, String name, String xp, int likes, int dislikes, double rating, boolean isTrusted ) {
+	public Reviewer(int Id, String name, String xp, int likes, int dislikes, double rating, boolean isTrusted, double score ) {
 		this.Id = Id;
 		this.name = name;
 		this.xp = xp;
@@ -69,10 +78,29 @@ public class Reviewer {
 		this.dislikes = dislikes;
 		this.rating = rating;
 		this.isTrusted = isTrusted;
+		this.score = score;
+	}
+	
+	public Reviewer(int Id, String name, String xp, int likes, int dislikes, double rating, boolean isTrusted) {
+		this.Id = Id;
+		this.name = name;
+		this.xp = xp;
+		this.likes = likes;
+		this.dislikes = dislikes;
+		this.rating = rating;
+		this.isTrusted = isTrusted;
+		this.score = 0.0;
 	}
 	
 
     // Getters and Setters
+	
+	/**
+	 * Gets Reviewers score
+	 * 
+	 * @return
+	 */
+	public double getScore() { return score; }
     
 	/**
      * Gets the reviewer's unique identifier.
@@ -117,6 +145,13 @@ public class Reviewer {
      * @return The reviewer's rating.
      */
     public double getRating() { return rating; }
+    
+    /**
+     * Gets the total number of reviews created by reviewer.
+     *
+     * @return The reviewer's number of reviews made
+     */
+    public int getNumOfReviews() { return numOfReviews; }
 
     /**
      * Checks if this reviewer is trusted which is based on their rating.
@@ -169,5 +204,29 @@ public class Reviewer {
     public void setXp(String xp) {
     	this.xp = xp;
     }
+    
+    /**
+     * setter for trust
+     * @param t
+     */
+    public void setTrust(Boolean t) {
+    	this.isTrusted = t;
+    }
+    
+    /**
+     * Updates number of reviews
+     * @param n
+     */
+    public void updateNumOfReviews(int n) {
+    	this.numOfReviews += n;
+    }
+
+    /**
+     * Score setter
+     * @param score
+     */
+	public void setScore(double score) {
+		this.score = score;
+	}
 	
 }
