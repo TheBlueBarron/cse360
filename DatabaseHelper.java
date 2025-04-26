@@ -1,6 +1,6 @@
 package databasePart1;
 
-import application.User;  
+import application.User; 
 import application.Question; 
 import application.Answer;
 import application.Conversations;
@@ -8,9 +8,7 @@ import application.Message;
 import application.Review;
 import application.Reviewer;
 
-import java.sql.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.sql.*; 
 import java.util.ArrayList; 
 import java.util.List; 
 import java.util.UUID;
@@ -33,8 +31,7 @@ public class DatabaseHelper {
 	
 	// JDBC driver name and database URL 
 	static final String JDBC_DRIVER = "org.h2.Driver";   
-	static final String DB_URL = "jdbc:h2:~/FoundationDatabase"; 
-	static final String DB_URL_TEST = "jdbc:h2:mem:testdb";
+	static final String DB_URL = "jdbc:h2:~/FoundationDatabase";  
 
 	//  Database credentials 
 	static final String USER = "sa"; 
@@ -56,44 +53,11 @@ public class DatabaseHelper {
 			connection = DriverManager.getConnection(DB_URL, USER, PASS);
 			statement = connection.createStatement(); 
 			// You can use this command to clear the database and restart from fresh.
-			// statement.execute("DROP ALL OBJECTS");
+			//statement.execute("DROP ALL OBJECTS");
 
 			createTables();  // Create the necessary tables if they don't exist
 		} catch (ClassNotFoundException e) {
 			System.err.println("JDBC Driver not found: " + e.getMessage());
-		}
-	}
-	
-	/**
-	 * This method is used for testing, and when called creates an in memory database to use instead of the production DB.
-	 * It initializes the usual tables so testing can be conducted on any.
-	 * 
-	 * DB_URL_TEST uses 'mem' which creates an in memory database that's removed when all connections are closed.
-	 * 
-	 * @throws SQLException
-	 */
-	public void connectToTestDB() throws SQLException {
-		try {
-			Class.forName(JDBC_DRIVER);
-			connection = DriverManager.getConnection(DB_URL_TEST, USER, PASS);
-			statement = connection.createStatement();
-			createTables();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} 
-
-	}
-	
-	/**
-	 * This method simply drops all the database tables, useful for testing.
-	 * 
-	 * @throws SQLException
-	 */
-	public void dropAllTables() throws SQLException {
-		try {
-			statement.execute("DROP ALL OBJECTS");
-		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -122,8 +86,7 @@ public class DatabaseHelper {
 	            + "id INT AUTO_INCREMENT PRIMARY KEY, "
 	            + "text VARCHAR(1024), "
 	            + "author VARCHAR(255), "
-	            + "isResolved BOOLEAN, "
-	            + "flagged BOOLEAN)";
+	            + "isResolved BOOLEAN)"; 
 	    statement.execute(questionsTable);
 	    
 	    // Answers table
@@ -144,7 +107,9 @@ public class DatabaseHelper {
 	    		+ "likes INT DEFAULT 0, "
 	    		+ "dislikes INT DEFAULT 0, "
 	    		+ "rating DECIMAL(5, 3) DEFAULT 0.0, "
-	    		+ "trusted BOOLEAN DEFAULT FALSE)";
+	    		+ "numOfReviews INT DEFAULT 0,"
+	    		+ "trusted BOOLEAN DEFAULT FALSE,"
+	    		+ "score DOUBLE DEFAULT 0.0)";
 	    statement.execute(reviewersTable);
 	    
 	    // Reviews table (linked to a reviewer)
@@ -374,8 +339,7 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getString("text"),
 	                rs.getString("author"),
-	                rs.getBoolean("isResolved"),
-	                rs.getBoolean("flagged")
+	                rs.getBoolean("isResolved") 			
 	            );
 	        }
 	    }
@@ -398,8 +362,8 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getString("text"),
 	                rs.getString("author"),
-	                rs.getBoolean("isResolved"), 
-	                rs.getBoolean("flagged")	                
+	                rs.getBoolean("isResolved") 
+	                
 	            ));
 	        }
 	    }
@@ -479,8 +443,7 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getString("text"),
 	                rs.getString("author"),
-	                rs.getBoolean("isResolved"),
-	                rs.getBoolean("flagged")
+	                rs.getBoolean("isResolved")
 	            ));
 	        }
 	    }
@@ -506,73 +469,11 @@ public class DatabaseHelper {
 	                rs.getInt("id"),
 	                rs.getString("text"),
 	                rs.getString("author"),
-	                rs.getBoolean("isResolved"),
-	                rs.getBoolean("flagged")
+	                rs.getBoolean("isResolved")
 	            ));
 	        }
 	    }
 	    return list;  // return the list of matching questions
-	}
-	
-	/**
-	 * This method fetches a list of questions that have answers to them. 
-	 * 
-	 * This method is used so that staff can more easily review student's answers and verify their validity,
-	 * and so students can more easily access pertinent information.
-	 * 
-	 * @return A list of questions that have answers
-	 * @throws SQLException If a database access error occurs.
-	 */
-	public List<Question> getAnsweredQuestionsList() throws SQLException {
-		List<Question> answeredQuestionsList = new ArrayList<>();
-	    String query = "SELECT q.id AS question_id, q.text AS question_text, q.author AS question_author, q.isResolved AS question_isResolved, q.flagged AS question_flagged "   
-	    		+ "FROM Questions q "
-	    		+ "JOIN Answers a ON q.id = a.question_id";  // This now only selects questions that are joined with an answer.	
-	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-	        ResultSet rs = pstmt.executeQuery();            // execute the query
-	        while (rs.next()) {
-	           Question question = new Question(			// create a question object
-	        		   rs.getInt("question_id"),
-	        		   rs.getString("question_text"),
-	        		   rs.getString("question_author"),
-	        		   rs.getBoolean("question_isResolved"),
-	        		   rs.getBoolean("question_flagged")
-	        		   );
-	           answeredQuestionsList.add(question); 			// put the question object in the list
-	        }
-	    }
-	    return answeredQuestionsList;  // return the answered questions
-	}
-	
-	/**
-	 * This method fetches a list of questions that don't have answers to them. 
-	 * 
-	 * This method is used so that staff can more easily review student's answers and verify their validity,
-	 * and so students can more easily access pertinent information.
-	 * 
-	 * @return A list of questions that don't have answers
-	 * @throws SQLException If a database access error occurs.
-	 */
-	public List<Question> getUnansweredQuestionsList() throws SQLException {
-		List<Question> unansweredQuestionsList = new ArrayList<>();
-	    String query = "SELECT q.id AS question_id, q.text AS question_text, q.author AS question_author, q.isResolved AS question_isResolved, q.flagged AS question_flagged "   
-	    		+ "FROM Questions q "
-	    		+ "LEFT JOIN Answers a ON q.id = a.question_id "  // This joins questions and answers tables, even questions with no answers
-	    		+ "WHERE a.question_id IS NULL";							  // For questions with no answers, those columns are set to null
-	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-	        ResultSet rs = pstmt.executeQuery();            // execute the query
-	        while (rs.next()) {
-	           Question question = new Question(			// create a question object
-	        		   rs.getInt("question_id"),
-	        		   rs.getString("question_text"),
-	        		   rs.getString("question_author"),
-	        		   rs.getBoolean("question_isResolved"),
-	        		   rs.getBoolean("question_flagged")
-	        		   );
-	           unansweredQuestionsList.add(question); 			// put the question object in the list
-	        }
-	    }
-	    return unansweredQuestionsList;  // return the list of unanswered questions
 	}
 
 	// ---------------- Answer Operations ----------------
@@ -970,7 +871,9 @@ public class DatabaseHelper {
 	 */
 	public void addReview(Review review) throws SQLException {
 	    String insertReview = "INSERT INTO Reviews (answer_id, text, reviewer_id) VALUES (?, ?, ?)";
-	    try (PreparedStatement pstmt = connection.prepareStatement(insertReview, Statement.RETURN_GENERATED_KEYS)) {
+	    String updateReviewer = "UPDATE Reviewers SET numOfReviews = numOfReviews + 1 WHERE id = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(insertReview, Statement.RETURN_GENERATED_KEYS);
+	         PreparedStatement updatePstmt = connection.prepareStatement(updateReviewer)) {
 	        pstmt.setInt(1, review.getAnswerId());      // set the ID of the question this answer belongs to
 	        pstmt.setString(2, review.getText());           // set the review text
 	        pstmt.setInt(3, review.getReviewerId());         // set the review author
@@ -979,6 +882,9 @@ public class DatabaseHelper {
 	        if (rs.next()) {
 	            review.setId(rs.getInt(1));                 // update the answer with its new ID
 	        }
+	        
+	        updatePstmt.setInt(1, review.getReviewerId()); // set the reviewer ID for updating
+	        updatePstmt.executeUpdate();                   // update numOfReviews for reviewer
 	    }
 	}
 	
@@ -1130,7 +1036,7 @@ public class DatabaseHelper {
      * @throws SQLException If an error occurs while accessing the database.
      */
 	public void saveReviewer(Reviewer reviewer) throws SQLException {
-        String addReviewer = "INSERT INTO Reviewers (name, xp, likes, dislikes, rating, trusted) VALUES (?, ?,  ?, ?, ?, ?)";
+        String addReviewer = "INSERT INTO Reviewers (name, xp, likes, dislikes, rating, trusted, score) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(addReviewer)) {
             pstmt.setString(1, reviewer.getName());  // Set reviewer name
             pstmt.setString(2, reviewer.getXP()); // set reviewer xp
@@ -1138,6 +1044,7 @@ public class DatabaseHelper {
             pstmt.setInt(4, reviewer.getDislikeCount());  // Set dislike count 
             pstmt.setDouble(5, reviewer.getRating());  // Set rating 
             pstmt.setBoolean(6, reviewer.isTrusted());  // Set trust status 
+            pstmt.setDouble(7, reviewer.getScore()); // Set Score
             
             pstmt.executeUpdate();
         }
@@ -1150,16 +1057,16 @@ public class DatabaseHelper {
      * @throws SQLException If an error occurs while accessing the database.
      */
 	public void updateReviewer(Reviewer reviewer) throws SQLException {
-        String updateReviewer = "UPDATE Reviewers SET name = ?, xp = ?, likes = ?, dislikes = ?, rating = ?, trusted = ? WHERE id = ?";
+        String updateReviewer = "UPDATE Reviewers SET name = ?, xp = ?, likes = ?, dislikes = ?, rating = ?, trusted = ?, score = ? WHERE id = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(updateReviewer)) {
             pstmt.setString(1, reviewer.getName());  // update reviewer name
             pstmt.setString(2, reviewer.getXP()); // set reviewer xp
-
             pstmt.setInt(3, reviewer.getLikeCount());  // update like count 
             pstmt.setInt(4, reviewer.getDislikeCount());  // update dislike count 
             pstmt.setDouble(5, reviewer.getRating());  // update rating 
             pstmt.setBoolean(6, reviewer.isTrusted());  // update trust status 
-            pstmt.setInt(7, reviewer.getId());
+            pstmt.setDouble(7, reviewer.getScore()); // update score
+            pstmt.setInt(8, reviewer.getId());
             
             pstmt.executeUpdate();
         }
@@ -1185,8 +1092,8 @@ public class DatabaseHelper {
 	                rs.getInt("likes"), // gets reviewer likes
 	                rs.getInt("dislikes"), // gets reviewers dislikes
 	                rs.getDouble("rating"), // rating
-	                rs.getBoolean("trusted") // trusted status
-	                
+	                rs.getBoolean("trusted"), // trusted status
+	                rs.getDouble("score") // score
 	            );
 	        }
 	    }
@@ -1290,13 +1197,35 @@ public class DatabaseHelper {
 	                rs.getInt("likes"),
 	                rs.getInt("dislikes"),
 	                rs.getDouble("rating"),
-	                rs.getBoolean("trusted")
+	                rs.getBoolean("trusted"),
+	                rs.getDouble("score")
 	            );
 	            reviewers.add(reviewer);
 	        }
 	    }
 	    return reviewers;
 	}
+	
+	/**
+	 * Return list of reviewers
+	 * 
+	 * @return String of all reviewers
+	 */
+	public String listReviewers(String role) {
+        StringBuilder userData = new StringBuilder();
+        String listUsers = "SELECT userName, role FROM cse360users WHERE role = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(listUsers)) {
+            pstmt.setString(1, role); 
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                userData.append("Reviewer - ").append(rs.getString("userName")).append("\n");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "Failed to fetch users."; // Return error message if something goes wrong
+        }
+        return userData.toString();
+    }
 
 	
     // ---------- Role Request Operations ----------
@@ -1544,9 +1473,9 @@ public class DatabaseHelper {
 	        ResultSet rs = pstmt.executeQuery();
 	        if (rs.next()) {
 	        	Timestamp timestamp = rs.getTimestamp("creation_date");
-	        	LocalDateTime ldt = timestamp.toLocalDateTime();
-	        	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-	        	date = ldt.format(formatter); // 2025-04-22 21:48
+	        	//LocalDateTime ldt = timestamp.toLocalDateTime();
+	        	//DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+	        	//date = ldt.format(formatter); // 2025-04-22 21:48
 
 	        }
 	        rs.close();
@@ -1578,7 +1507,7 @@ public class DatabaseHelper {
 	            String text = rs.getString("text");
 	            boolean resolved = rs.getBoolean("isResolved");
 	            boolean flagged = rs.getBoolean("flagged");  // added new for flagging
-	            questions.add(new Question(id, text, username, resolved, flagged));
+	            questions.add(new Question(id, text, username, resolved));
 	        }
 
 	        rs.close();
@@ -1609,8 +1538,7 @@ public class DatabaseHelper {
 	    		    rs.getInt("id"),
 	    		    rs.getString("text"),
 	    		    rs.getString("author"),
-	    		    rs.getBoolean("isResolved"),
-	    		    rs.getBoolean("flagged")
+	    		    rs.getBoolean("isResolved")
 	    		));
 	    }
 
@@ -1644,8 +1572,101 @@ public class DatabaseHelper {
 
 	}
     
-    // --------------------------------------------------
-    
+    // ---------------------- Score Card Operations ----------------------
+	
+	/**
+	 * Will calculate the reviewers score and update all reviewers in database
+	 * based on instructors input.
+	 * 
+	 * @param useLikesDislikes
+	 * @param useNumReviews
+	 * @throws SQLException
+	 */
+	public void calculateAndUpdateScores(boolean useLikesDislikes, boolean useNumReviews) throws SQLException {
+	    List<Reviewer> reviewers = getAllReviewers(); 
+
+	    for (Reviewer reviewer : reviewers) {
+	        // Calculate score based on current parameters
+	        double score = calculateReviewerScore(reviewer.getId(), useLikesDislikes, useNumReviews);
+
+	        // Determine trust based on score
+	        boolean isTrusted = score >= 70;
+	        reviewer.setTrust(isTrusted);
+	        reviewer.setScore(score);
+
+	        // Update the database with the new trust status and score
+	        updateReviewer(reviewer);
+	        
+	        System.out.println("-- In Loop --\nScore: " + reviewer.getScore() + " | Trust: " + reviewer.isTrusted());
+	    }
+	}
+
+	/**
+	 * Calculates reviewers score
+	 * 
+	 * @param reviewerId
+	 * @param useReviews
+	 * @param useLikes
+	 * @return
+	 * @throws SQLException 
+	 */
+	public double calculateReviewerScore(int reviewerId, boolean useReviews, boolean useLikes) throws SQLException {
+		
+		// if neither are true, return 0
+		if (!useReviews && !useLikes) {
+			return 0;
+		}
+		
+		double score = 0;
+		double likeRatio = 0.0;
+		double reviewRatio = 0.0;
+		
+		// The weight for calc at end
+		double likeWeight = 0.6;
+		double reviewWeight = 0.4;
+		
+		// get reviewer likes/dislikes and numOfReviews
+		Reviewer r = null;
+		try {
+			r = getReviewerById(reviewerId);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		int numLikes = r.getLikeCount();
+		int numDislikes = r.getDislikeCount();
+		int numReviews = r.getNumOfReviews();
+		
+		// Calculate
+		if (useLikes) {
+		    if (numLikes + numDislikes > 0) {
+		        likeRatio = (double) numLikes / (numLikes + numDislikes);
+		    }
+		} else {
+			likeWeight = 0;
+			reviewWeight = 1;
+		}
+		
+		if (useReviews) {
+			System.out.println("Num reviews in class: " + numReviews);
+			if (numReviews == 0) {
+				reviewRatio = 0;
+			} else {
+				reviewRatio = (1-((1/numReviews)*0.4))*0.4;
+			}
+		} else {
+			reviewWeight = 0;
+			likeWeight = 1;
+		}
+		
+		score = (likeRatio * likeWeight) + (reviewRatio * reviewWeight);
+		return (int) Math.round(score * 100);
+	}
+	
+	public void setNumReviews(Reviewer r) {
+		
+	}
+	
     // ------------------------------------------------
     
 	/**
@@ -1663,5 +1684,7 @@ public class DatabaseHelper {
 			se.printStackTrace(); 
 		} 
 	}
+
+
 
 }
