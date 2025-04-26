@@ -1,0 +1,107 @@
+package application;
+
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import databasePart1.DatabaseHelper;
+import java.sql.SQLException;
+import javafx.geometry.Insets;
+import javafx.scene.layout.HBox;
+
+/**
+ * ScorecardPage displays all reviewers' score and trust status in a text area.
+ */
+public class ScorecardPage {
+
+	public void show(Stage primaryStage, DatabaseHelper databaseHelper) {
+	    HBox mainLayout = new HBox(20);
+	    mainLayout.setPadding(new Insets(20));
+
+	    // === LEFT SIDE ===
+	    VBox buttonBox = new VBox(10);
+
+	    Button displayButton = new Button("Display Reviewers");
+	    Button recalcButton = new Button("Recalculate Scores");
+	    
+	    CheckBox reviewsBox = new CheckBox("Use # of Reviews");
+        CheckBox likesBox = new CheckBox("Use Likes/Dislikes");
+
+	    TextArea reviewerTextArea = new TextArea();
+	    reviewerTextArea.setEditable(false);
+	    reviewerTextArea.setPrefHeight(300);
+	    reviewerTextArea.setPrefWidth(350);
+
+	    buttonBox.getChildren().addAll(reviewsBox, likesBox, recalcButton, displayButton, reviewerTextArea);
+
+	    // === RIGHT SIDE ===
+	    VBox detailBox = new VBox(10);
+	    TextField usernameInput = new TextField();
+	    usernameInput.setPromptText("Enter username");
+
+	    Button findScoreButton = new Button("Find Score");
+	    Button backButton = new Button("Back");
+
+	    Label trustLabel = new Label("Trusted: --");
+	    Label scoreLabel = new Label("Score: --");
+
+	    detailBox.getChildren().addAll(usernameInput, findScoreButton, trustLabel, scoreLabel, backButton);
+
+	    // === Event Handlers ===
+
+	    displayButton.setOnAction(e -> {
+	        String data = databaseHelper.listReviewers("reviewer"); // Your working method
+	        reviewerTextArea.setText(data);
+	    });
+
+	    recalcButton.setOnAction(e -> {
+	    	boolean useReviews = reviewsBox.isSelected();
+	        boolean useLikes = likesBox.isSelected();
+	        
+	        try {
+	            databaseHelper.calculateAndUpdateScores(useReviews, useLikes);
+	            reviewerTextArea.setText(databaseHelper.listReviewers("reviewer"));
+	        } catch (SQLException ex) {
+	            reviewerTextArea.setText("Error recalculating scores.");
+	            ex.printStackTrace();
+	        }
+	    });
+
+	    backButton.setOnAction(e -> {
+	        new InstructorHomePage(databaseHelper).show(primaryStage);
+	    });
+
+	    findScoreButton.setOnAction(e -> {
+	        String name = usernameInput.getText().trim();
+	        if (name.isEmpty()) {
+	            trustLabel.setText("Trusted: --");
+	            scoreLabel.setText("Score: --");
+	            return;
+	        }
+
+	        try {
+	            Reviewer r = databaseHelper.getReviewerById(databaseHelper.getReviewerIDByUsername(name));
+	            if (r != null) {
+	                trustLabel.setText("Trusted: " + (r.isTrusted() ? "Yes" : "No"));
+	                scoreLabel.setText("Score: " + String.format("%.2f", r.getScore()));
+	            } else {
+	                trustLabel.setText("Trusted: User not found");
+	                scoreLabel.setText("Score: --");
+	            }
+	        } catch (SQLException ex) {
+	            trustLabel.setText("Trusted: ERROR");
+	            scoreLabel.setText("Score: ERROR");
+	            ex.printStackTrace();
+	        }
+	    });
+
+	    // === Final Layout
+	    mainLayout.getChildren().addAll(buttonBox, detailBox);
+
+	    Scene scene = new Scene(mainLayout, 800, 400);
+	    primaryStage.setScene(scene);
+	    primaryStage.setTitle("Reviewer Scorecard");
+	    primaryStage.show();
+	}
+
+}
